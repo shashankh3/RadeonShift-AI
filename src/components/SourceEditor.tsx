@@ -138,13 +138,13 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
       </div>
 
       <div className="flex items-center gap-3 border-b border-white/10 bg-[#07070a]/80 px-4 py-2">
-        <button onClick={() => setFiles(DEMO_SNIPPETS.SGEMM)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)]">
+        <button onClick={() => setFiles(DEMO_SNIPPETS.SGEMM)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)] active:scale-95">
           Demo: SGEMM
         </button>
-        <button onClick={() => setFiles(DEMO_SNIPPETS.VectorAdd)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)]">
+        <button onClick={() => setFiles(DEMO_SNIPPETS.VectorAdd)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)] active:scale-95">
           Demo: Vector Add
         </button>
-        <button onClick={() => setFiles(DEMO_SNIPPETS.Softmax)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)]">
+        <button onClick={() => setFiles(DEMO_SNIPPETS.Softmax)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)] active:scale-95">
           Demo: Softmax
         </button>
       </div>
@@ -177,7 +177,7 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
           <button
             onClick={() => onMigrate(files['kernel.cu'] + '\n\n' + files['main.cu'])}
             disabled={isTranslating}
-            className={`amd-btn group relative flex items-center gap-3 overflow-hidden px-7 py-4 font-black uppercase tracking-[0.2em] text-white transition-all duration-300
+            className={`amd-btn group relative flex items-center gap-3 overflow-hidden px-7 py-4 font-black uppercase tracking-[0.2em] text-white transition-all duration-300 active:scale-[0.98]
               ${isTranslating
                 ? 'cursor-not-allowed bg-amd-red-dark text-white/65 shadow-[0_0_26px_rgba(143,6,11,0.35)]'
                 : 'bg-gradient-to-r from-amd-red via-[#ff2b20] to-radeon-orange shadow-[0_0_34px_rgba(237,28,36,0.46)] hover:-translate-y-1 hover:shadow-[0_0_54px_rgba(237,28,36,0.68)]'

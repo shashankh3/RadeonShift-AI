@@ -47,7 +47,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
             </h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center 2xl:min-w-[390px]">
+          <div className="hidden grid-cols-3 gap-2 text-center opacity-30 sm:grid 2xl:min-w-[390px]">
             <MiniStat label="Wave" value="64" />
             <MiniStat label="Arch" value="gfx942" />
             <MiniStat label="ROCm" value="6.1" />
@@ -121,7 +121,9 @@ function TranslatingOverlay() {
       <div className="amd-cut border border-amd-red/35 bg-black/70 px-8 py-6 text-center shadow-[0_0_60px_rgba(237,28,36,0.25)]">
         <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-amd-red/20 border-t-amd-red" />
         <div className="text-sm font-black uppercase tracking-[0.28em] text-white">Retargeting Kernel</div>
-        <div className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-amd-red">CUDA → HIP → Instinct</div>
+        <div className="mt-4 text-[10px] font-black uppercase tracking-[0.15em] text-amd-red flex gap-2 justify-center opacity-90 animate-pulse">
+          <span>HIPIFY</span> <span>→</span> <span>AGENT A</span> <span>→</span> <span>AGENT B</span> <span>→</span> <span>SCORECARD</span>
+        </div>
       </div>
     </div>
   );
@@ -151,38 +153,88 @@ function CodePanel({ code }: { code: string }) {
 }
 
 function AnalyticsPanel({ log }: { log: string }) {
+  let data = null;
+  try {
+    data = JSON.parse(log);
+  } catch (e) {
+    // fallback
+  }
+
+  if (!data) {
+    return (
+      <div className="mx-auto flex max-w-5xl flex-col gap-5">
+        <SectionTitle kicker="Compiler Intelligence" title="Translation Insights" />
+        <div className="amd-surface p-6"><div className="relative z-10 text-white/55">{log}</div></div>
+      </div>
+    );
+  }
+
+  const score = data.readiness_score || 0;
+  const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-yellow-400' : 'text-red-500';
+  const scoreBorder = score >= 80 ? 'border-emerald-500/30' : score >= 50 ? 'border-yellow-500/30' : 'border-red-500/30';
+  const ptxRisks = data.ptx_risks || [];
+  const optimizations = data.wavefront_optimizations || [];
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
-      <SectionTitle kicker="Compiler Intelligence" title="Translation Insights" />
+      <SectionTitle kicker="Compiler Intelligence" title="MoA Audit Scorecard" />
       
-      <div className="amd-surface p-6">
+      <div className={`amd-surface p-6 border transition-all ${scoreBorder}`}>
         <div className="relative z-10">
-          <ReactMarkdown
-            components={{
-              strong: ({node, ...props}) => {
-                const text = String(props.children);
-                if (text.includes('Estimated Engineering Hours Saved')) {
-                  return (
-                    <span className="inline-block rounded border border-emerald-400/45 bg-emerald-400/10 px-3 py-1 font-black uppercase tracking-wider text-emerald-400 shadow-[0_0_22px_rgba(16,185,129,0.12)]">
-                      {props.children}
-                    </span>
-                  );
-                }
-                return <strong className="font-bold text-white" {...props} />;
-              },
-              h3: ({node, ...props}) => (
-                <h4 className="mb-4 mt-6 border-b border-white/10 pb-2 text-lg font-black uppercase tracking-wide text-white first:mt-0">{props.children}</h4>
-              ),
-              p: ({node, ...props}) => (
-                <p className="mb-4 text-sm leading-7 text-white/55 last:mb-0">{props.children}</p>
-              ),
-              code: ({node, ...props}) => (
-                <code className="border border-white/10 bg-black/45 px-1.5 py-0.5 font-mono text-xs text-amd-red">{props.children}</code>
-              )
-            }}
-          >
-            {log}
-          </ReactMarkdown>
+          <div className="flex flex-col sm:flex-row items-center gap-6 mb-8 border-b border-white/10 pb-6">
+            <div className="text-center sm:text-left">
+              <div className="text-[10px] font-black uppercase tracking-[0.28em] text-white/42 mb-2">Readiness Score</div>
+              <div className={`text-[84px] leading-none font-black tracking-[-0.08em] ${scoreColor}`}>
+                {score}<span className="text-3xl text-white/50">/100</span>
+              </div>
+            </div>
+            <div className="flex-1 mt-4 sm:mt-0">
+              <p className="text-[15px] font-medium leading-7 text-white/90 border-l border-white/20 pl-6">
+                {score >= 80 ? "Kernel is highly optimized for MI300X execution. No critical PTX blocks found." : 
+                 score >= 50 ? "Kernel requires some manual review for optimal performance." : 
+                 "Significant manual PTX translation required before deployment."}
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-black/30 border border-amd-red/30 hover:border-amd-red/50 transition-colors p-5 rounded-sm min-h-[200px]">
+              <div className="border-b border-amd-red/20 pb-3 mb-4">
+                <h4 className="text-[11px] font-black uppercase tracking-wide text-white">Agent A: NVIDIA Purist</h4>
+                <div className="text-[10px] font-medium text-white/50 uppercase tracking-widest mt-1">Flags lock-in risks</div>
+              </div>
+              {ptxRisks.length > 0 ? (
+                <ul className="list-disc list-inside space-y-2 text-sm text-red-400/90 font-medium">
+                  {ptxRisks.map((risk: string, i: number) => <li key={i}>{risk}</li>)}
+                </ul>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-emerald-400/90 font-medium">
+                  <CheckCircle2 className="h-4 w-4" /> No critical PTX or warp-size hardcoding detected.
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-black/30 border border-cyan-500/30 hover:border-cyan-500/50 transition-colors p-5 rounded-sm min-h-[200px]">
+              <div className="border-b border-cyan-500/20 pb-3 mb-4">
+                <h4 className="text-[11px] font-black uppercase tracking-wide text-white">Agent B: AMD Optimizer</h4>
+                <div className="text-[10px] font-medium text-white/50 uppercase tracking-widest mt-1">Suggests MI300X tuning</div>
+              </div>
+              {optimizations.length > 0 ? (
+                <ul className="list-disc list-inside space-y-2 text-sm text-cyan-100/80">
+                  {optimizations.map((opt: string, i: number) => <li key={i}>{opt}</li>)}
+                </ul>
+              ) : (
+                <p className="text-sm text-white/55">No specific wavefront optimizations suggested.</p>
+              )}
+            </div>
+          </div>
+          
+          {data.manual_intervention_required && (
+            <div className="mt-6 bg-red-500/10 border border-red-500/30 p-4 text-sm text-red-400 font-medium flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+              Manual intervention is strictly required before deploying this kernel to production.
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -234,8 +286,8 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
     <button
       onClick={onClick}
       className={`amd-chip-cut relative flex shrink-0 items-center gap-3 border-x border-t px-5 py-3 text-xs font-black uppercase tracking-[0.18em] transition-all duration-300 ${active
-          ? 'border-amd-red/70 bg-amd-red/12 text-white shadow-[0_-10px_34px_rgba(237,28,36,0.16)]'
-          : 'border-white/10 bg-white/[0.035] text-white/38 hover:border-white/20 hover:bg-white/[0.06] hover:text-white/70'
+          ? 'border-amd-red bg-amd-red/20 text-white shadow-[0_-10px_40px_rgba(237,28,36,0.25)]'
+          : 'border-white/10 bg-white/[0.035] text-white/38 hover:border-white/30 hover:bg-white/[0.08] hover:text-white/80'
         }`}
     >
       {active && <span className="absolute inset-x-0 top-0 h-[2px] bg-amd-red shadow-[0_0_14px_rgba(237,28,36,0.95)]" />}
