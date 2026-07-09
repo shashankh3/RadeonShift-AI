@@ -6,7 +6,7 @@ RadeonShift AI takes security seriously. As a DevSecOps tool that processes prop
 
 If you discover a security vulnerability, **please do not report it in public GitHub issues.**
 
-Instead, please send an email to **security@radeonshift.ai** (or contact the maintainers directly during the hackathon period). 
+Instead, please send an email to **shashankh3@gmail.com** (or contact the maintainers directly during the hackathon period). 
 
 Please include:
 - A summary of the vulnerability
