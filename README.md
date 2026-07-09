@@ -29,46 +29,53 @@
 
 ---
 
-## 🚀 How It Works (The Core Moat)
+## <kbd> 🚀 HOW IT WORKS (THE CORE MOAT) </kbd>
 
 RadeonShift AI rejects the flawed "AI Code Generator" paradigm. Instead, we use a hybrid **Deterministic + Mixture of Agents (MoA)** architecture.
 
 1. **Deterministic Syntax Translation:** We execute AMD's native `hipify-perl` script under the hood to guarantee 100% mathematically identical API mappings (e.g., `cudaMalloc` → `hipMalloc`).
 2. **Mixture-of-Agents (MoA) Orchestration:** The resulting HIP C++ code is instantly analyzed by two opposing LLM agents running in parallel via the Fireworks AI network.
 
-```ascii
-[ legacy.cu ] -----> [ Deterministic HIPIFY ] -----> [ target.hip.cpp ]
-                                                            |
-                 +------------------------------------------+
-                 |
-                 v
-      [ Fireworks AI Orchestrator ]
-        /                       \
-   [ Agent A ]               [ Agent B ]
- (NVIDIA Purist)           (AMD Optimizer)
- Flags PTX risks           Wavefront64 tuning
-        \                       /
-         +---------------------+
-                 |
-                 v
-    [ MI300X Readiness Scorecard ]
+```text
++----------------+        +------------------------+        +------------------+
+|   legacy.cu    | -----> | Deterministic HIPIFY   | -----> |  target.hip.cpp  |
+| (NVIDIA CUDA)  |        | (Regex API Mapping)    |        |    (AMD ROCm)    |
++----------------+        +------------------------+        +------------------+
+                                                                     |
+                           +-----------------------------------------+
+                           |
+                           v
+                [ Fireworks AI Orchestrator ]
+                  /                       \
+             [ Agent A ]               [ Agent B ]
+           (NVIDIA Purist)           (AMD Optimizer)
+           Flags PTX risks          Wavefront64 tuning
+                  \                       /
+                   +---------------------+
+                           |
+                           v
+              [ MI300X Readiness Scorecard ]
 ```
 
 ---
 
-## ⚡ Key Features
+## <kbd> ⚡ KEY FEATURES </kbd>
 
-*   **AMD Instinct MI300X Native:** Architected from day one to optimize specifically for AMD's flagship CDNA 3 accelerators.
-*   **Zero Hallucinations:** AI is isolated to advisory roles (scoring and optimization recommendations). Syntax is always translated deterministically.
-*   **Dual-Agent Intelligence:** 
-    *   **Agent A:** Aggressively hunts for NVIDIA vendor lock-in, hardcoded warp sizes (32 instead of 64), and inline PTX assembly.
-    *   **Agent B:** Suggests direct CDNA 3 memory access patterns and Wavefront64 optimizations.
-*   **Enterprise CI/CD Integration:** Operates headlessly via GitHub Actions. Developers open a Pull Request, and RadeonShift automatically comments a migration audit on the PR.
-*   **Live Hardware Telemetry:** Interrogates `rocm-smi` directly from the AMD Developer Cloud to ensure the target environment matches the compilation target.
+> **AMD Instinct MI300X Native:** Architected from day one to optimize specifically for AMD's flagship CDNA 3 accelerators.
+> 
+> **Zero Hallucinations:** AI is isolated to advisory roles (scoring and optimization recommendations). Syntax is always translated deterministically.
+> 
+> **Dual-Agent Intelligence:** 
+> - **Agent A:** Aggressively hunts for NVIDIA vendor lock-in, hardcoded warp sizes (32 instead of 64), and inline PTX assembly.
+> - **Agent B:** Suggests direct CDNA 3 memory access patterns and Wavefront64 optimizations.
+>
+> **Enterprise CI/CD Integration:** Operates headlessly via GitHub Actions. Developers open a Pull Request, and RadeonShift automatically comments a migration audit on the PR.
+>
+> **Live Hardware Telemetry:** Interrogates `rocm-smi` directly from the AMD Developer Cloud to ensure the target environment matches the compilation target.
 
 ---
 
-## 💻 Quickstart
+## <kbd> 💻 QUICKSTART </kbd>
 
 ### 1. Environment Configuration
 Create a `.env` file in the root directory and add your Fireworks AI API key:
@@ -96,7 +103,7 @@ npm run dev
 
 ---
 
-## 🛠️ Enterprise Tooling
+## <kbd> 🛠️ ENTERPRISE TOOLING </kbd>
 
 ### CLI Scanner
 Run a batch migration feasibility scan on a massive local codebase to estimate total engineering hours saved.
