@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/AMD_Logo.svg" width="120" alt="AMD Logo"/>
   <h1 align="center">RadeonShift AI</h1>
   <p align="center">
     <strong>Accelerating the AMD MI300X Hardware Migration via Generative AI</strong>
