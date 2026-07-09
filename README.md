@@ -29,7 +29,7 @@
 
 ---
 
-## <kbd> 🚀 HOW IT WORKS (THE CORE MOAT) </kbd>
+## 🚀 HOW IT WORKS (THE CORE MOAT)
 
 RadeonShift AI rejects the flawed "AI Code Generator" paradigm. Instead, we use a hybrid **Deterministic + Mixture of Agents (MoA)** architecture.
 
@@ -64,7 +64,7 @@ graph TD
 
 ---
 
-## <kbd> ⚡ KEY FEATURES </kbd>
+## ⚡ KEY FEATURES
 
 > **AMD Instinct MI300X Native:** Architected from day one to optimize specifically for AMD's flagship CDNA 3 accelerators.
 > 
@@ -80,7 +80,7 @@ graph TD
 
 ---
 
-## <kbd> 💻 QUICKSTART </kbd>
+## 💻 QUICKSTART
 
 ### 1. Environment Configuration
 Create a `.env` file in the root directory and add your Fireworks AI API key:
@@ -108,7 +108,7 @@ npm run dev
 
 ---
 
-## <kbd> 🛠️ ENTERPRISE TOOLING </kbd>
+## 🛠️ ENTERPRISE TOOLING
 
 ### CLI Scanner
 Run a batch migration feasibility scan on a massive local codebase to estimate total engineering hours saved.
