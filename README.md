@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>RadeonShift AI</h1>
+  <img src="docs/logo.png" alt="RadeonShift AI Logo" width="500" style="margin-bottom: 20px;">
   <p>
     <strong>Accelerating the AMD MI300X Hardware Migration via Generative AI</strong><br>
     <em>AMD ROCm Migration Console</em>
