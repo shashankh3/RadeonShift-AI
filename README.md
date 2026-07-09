@@ -1,15 +1,31 @@
 <div align="center">
-  <h1 align="center">RadeonShift AI</h1>
-  <p align="center">
-    <strong>Accelerating the AMD MI300X Hardware Migration via Generative AI</strong>
-  </p>
-  <p align="center">
-    <a href="https://github.com/shashankh3/RadeonShift-AI/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-    <img src="https://img.shields.io/badge/AMD-ROCm%206.1-ed1c24.svg" alt="ROCm 6.1">
-    <img src="https://img.shields.io/badge/Next.js-14.2-black.svg" alt="Next.js">
-    <img src="https://img.shields.io/badge/Python-3.11-3776AB.svg" alt="Python">
-  </p>
+  <div style="background-color: #050507; padding: 40px; border: 1px solid #333; border-radius: 8px;">
+    <p align="center" style="color: #ED1C24; font-size: 10px; font-weight: 900; letter-spacing: 4px; text-transform: uppercase;">
+      ● AMD ROCm Migration Console
+    </p>
+    <h1 align="center" style="font-family: 'Arial Black', sans-serif; font-size: 48px; margin: 10px 0;">
+      <span style="color: #FFFFFF; font-style: italic;">RADEON</span><span style="color: #ED1C24; font-style: italic;">SHIFT</span><span style="color: #666666; font-size: 24px;"> AI</span>
+    </h1>
+    <p align="center" style="color: #A0A0A0;">
+      <strong>Accelerating the AMD MI300X Hardware Migration via Generative AI</strong>
+    </p>
+    <p align="center">
+      <a href="https://github.com/shashankh3/RadeonShift-AI/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+      <img src="https://img.shields.io/badge/AMD-ROCm%206.1-ed1c24.svg" alt="ROCm 6.1">
+      <img src="https://img.shields.io/badge/Next.js-14.2-black.svg" alt="Next.js">
+      <img src="https://img.shields.io/badge/Python-3.11-3776AB.svg" alt="Python">
+    </p>
+  </div>
 </div>
+
+<br />
+
+<!-- IMPORTANT: Save the screenshot you just uploaded as 'docs/hero.png' in your repository to make this render! -->
+<div align="center">
+  <img src="docs/hero.png" alt="RadeonShift AI Dashboard Dashboard" width="100%" style="border-radius: 8px; border: 1px solid #333; box-shadow: 0 0 30px rgba(237,28,36,0.15);" />
+</div>
+
+<br />
 
 <br />
 
