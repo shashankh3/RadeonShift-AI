@@ -1,0 +1,70 @@
+name: RadeonShift CUDA Migration Audit
+on:
+  pull_request:
+    paths:
+      - '**.cu'
+      - '**.cuh'
+
+jobs:
+  radeonshift-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Find CUDA files in PR
+        id: find-cuda
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '\.(cu|cuh)$' || true)
+          # For testing, grab the first file
+          FIRST_FILE=$(echo "$FILES" | head -n 1)
+          echo "files=$FIRST_FILE" >> $GITHUB_OUTPUT
+          
+      - name: Send to RadeonShift Backend
+        if: steps.find-cuda.outputs.files != ''
+        id: translate
+        run: |
+          # Read file content and escape it for JSON payload
+          CONTENT=$(cat "${{ steps.find-cuda.outputs.files }}" | jq -sR .)
+          PAYLOAD="{\"cuda_code\": $CONTENT}"
+          
+          RESPONSE=$(curl -s -X POST "${{ secrets.RADEONSHIFT_BACKEND_URL }}/translate" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          
+      - name: Comment MoA Report on PR
+        if: steps.find-cuda.outputs.files != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const response = JSON.parse('${{ steps.translate.outputs.response }}');
+            const auditLog = JSON.parse(response.audit_log);
+            const score = auditLog.readiness_score;
+            const emoji = score >= 80 ? '🟢' : score >= 50 ? '🟡' : '🔴';
+            
+            const ptxRisks = auditLog.ptx_risks.length > 0 ? '- ' + auditLog.ptx_risks.join('\n- ') : 'No critical NVIDIA-specific risks detected.';
+            const optimizations = auditLog.wavefront_optimizations.length > 0 ? '- ' + auditLog.wavefront_optimizations.join('\n- ') : 'No additional optimizations required.';
+            
+            const body = `## RadeonShift MI300X Migration Audit ${emoji}
+            
+            **Compilation Readiness Score:** ${score}/100
+            
+            ### Agent A — NVIDIA Purist Audit
+            ${ptxRisks}
+            
+            ### Agent B — AMD MI300X Optimizer
+            ${optimizations}
+            
+            ### Translated HIP Code
+            \`\`\`cpp
+            ${response.rocm_code}
+            \`\`\`
+            
+            ---
+            _Automated by RadeonShift AI — Migration-as-a-Service for AMD MI300X_`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
