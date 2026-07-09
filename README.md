@@ -36,25 +36,30 @@ RadeonShift AI rejects the flawed "AI Code Generator" paradigm. Instead, we use 
 1. **Deterministic Syntax Translation:** We execute AMD's native `hipify-perl` script under the hood to guarantee 100% mathematically identical API mappings (e.g., `cudaMalloc` → `hipMalloc`).
 2. **Mixture-of-Agents (MoA) Orchestration:** The resulting HIP C++ code is instantly analyzed by two opposing LLM agents running in parallel via the Fireworks AI network.
 
-```text
-+----------------+        +------------------------+        +------------------+
-|   legacy.cu    | -----> | Deterministic HIPIFY   | -----> |  target.hip.cpp  |
-| (NVIDIA CUDA)  |        | (Regex API Mapping)    |        |    (AMD ROCm)    |
-+----------------+        +------------------------+        +------------------+
-                                                                     |
-                           +-----------------------------------------+
-                           |
-                           v
-                [ Fireworks AI Orchestrator ]
-                  /                       \
-             [ Agent A ]               [ Agent B ]
-           (NVIDIA Purist)           (AMD Optimizer)
-           Flags PTX risks          Wavefront64 tuning
-                  \                       /
-                   +---------------------+
-                           |
-                           v
-              [ MI300X Readiness Scorecard ]
+```mermaid
+graph TD
+    A["legacy.cu (NVIDIA CUDA)"] --> B["Deterministic HIPIFY (Regex Mapping)"]
+    B --> C["target.hip.cpp (AMD ROCm)"]
+    
+    subgraph MoA["Mixture-of-Agents Engine"]
+        direction TB
+        D{"Fireworks AI Orchestrator"}
+        
+        subgraph Agents["Parallel AI Analysis"]
+            direction LR
+            E["Agent A: NVIDIA Purist<br/>(Flags PTX & Warp lock-in risks)"]
+            F["Agent B: AMD Optimizer<br/>(Suggests Wavefront64 tuning)"]
+        end
+        
+        G["MI300X Readiness Scorecard"]
+        
+        D --> E
+        D --> F
+        E --> G
+        F --> G
+    end
+    
+    C --> D
 ```
 
 ---
