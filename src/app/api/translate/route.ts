@@ -61,11 +61,26 @@ export async function POST(request: Request) {
     
     // Aggressive regex extraction to strip markdown
     const cleanJsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!cleanJsonMatch) {
-      throw new Error("No valid JSON found in AI response");
-    }
+    let aiData;
     
-    const aiData = JSON.parse(cleanJsonMatch[0]);
+    if (!cleanJsonMatch) {
+      // If AI failed to generate JSON, do not crash. Inject raw content into the UI.
+      aiData = {
+        readiness_score: 0,
+        ptx_risks: [`AI generated non-JSON output: ${content.substring(0, 200)}`],
+        wavefront_optimizations: ["Failed to parse AI response"]
+      };
+    } else {
+      try {
+        aiData = JSON.parse(cleanJsonMatch[0]);
+      } catch (e) {
+        aiData = {
+          readiness_score: 0,
+          ptx_risks: [`AI JSON Parse Error: ${cleanJsonMatch[0].substring(0, 200)}`],
+          wavefront_optimizations: []
+        };
+      }
+    }
 
     // Return Real Data - no fallbacks
     return NextResponse.json({
