@@ -76,7 +76,9 @@ export async function POST(request: Request) {
       }
 
       const fireworksData = await fireworksRes.json();
-      auditLogText = fireworksData.choices[0].message.content;
+      const rawContent = fireworksData.choices[0].message.content;
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      auditLogText = jsonMatch ? jsonMatch[0] : "{}";
     } catch (e: any) {
       clearTimeout(timeoutId);
       console.warn("Fireworks API call failed or timed out. Falling back to synthetic mock.", e.message);
