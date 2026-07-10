@@ -2,7 +2,8 @@ import sys
 import os
 sys.path.append(os.path.abspath('.'))
 
-from main import perform_static_portability_scan, attempt_hip_compile
+from services.static_scanner import perform_static_portability_scan
+from services.hip_compiler import attempt_hip_compile
 
 def test_static_scan():
     cuda_code = """
