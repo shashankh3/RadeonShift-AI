@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s safe timeout limit
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s safe timeout (Vercel Edge kills at 25s)
 
     const fireworksRes = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
       method: 'POST',
