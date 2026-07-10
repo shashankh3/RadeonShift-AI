@@ -4,8 +4,10 @@ export interface TranslationResponse {
   verification?: any;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+
 export async function translateCode(code: string): Promise<TranslationResponse> {
-  const response = await fetch('http://localhost:8001/translate', {
+  const response = await fetch(`${API_BASE_URL}/translate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -54,7 +56,7 @@ export interface BenchmarkResponse {
 }
 
 export async function runBenchmark(size: number, iterations: number): Promise<BenchmarkResponse> {
-  const response = await fetch('http://localhost:8001/benchmark/vector-add', {
+  const response = await fetch(`${API_BASE_URL}/benchmark/vector-add`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
