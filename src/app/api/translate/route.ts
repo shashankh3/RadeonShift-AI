@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -52,11 +54,15 @@ export async function POST(request: Request) {
         signal: controller.signal,
         body: JSON.stringify({
           model: 'accounts/fireworks/models/deepseek-v4-flash',
-          max_tokens: 400,
+          max_tokens: 150,
           messages: [
             {
+              role: 'system',
+              content: 'You are an MoA auditor. Output ONLY a raw, minified JSON object with "readiness_score", "ptx_risks" (max 2 short items), and "wavefront_optimizations". No markdown formatting, no explanations.'
+            },
+            {
               role: 'user',
-              content: `Analyze CUDA to HIP conversion. Return JSON: {"readiness_score": INT, "ptx_risks": [STR], "wavefront_optimizations": [STR]}. CUDA:\n${cudaCode}\n\nHIP:\n${rocmCode}`
+              content: `CUDA:\n${cudaCode}\n\nHIP:\n${rocmCode}`
             }
           ],
           response_format: { type: 'json_object' }
