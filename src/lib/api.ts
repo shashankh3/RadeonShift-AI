@@ -1,6 +1,7 @@
 export interface TranslationResponse {
   rocm_code: string;
   audit_log: string;
+  verification?: any;
 }
 
 export async function translateCode(code: string): Promise<TranslationResponse> {

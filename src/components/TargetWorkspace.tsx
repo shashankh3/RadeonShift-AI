@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import { Code2, BrainCircuit, Activity, CheckCircle2, AlertTriangle, Timer, Cpu, Layers, Database } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import VerificationGate from './VerificationGate';
 
 interface TargetWorkspaceProps {
   isTranslating: boolean;
   hasTranslated: boolean;
   rocmCode: string;
   auditLog: string;
+  verification?: any;
 }
 
 const ROCM_CODE = `#include <hip/hip_runtime.h>
@@ -26,7 +28,7 @@ int main() {
     return 0;
 }`;
 
-export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode, auditLog }: TargetWorkspaceProps) {
+export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode, auditLog, verification }: TargetWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<'code' | 'analytics' | 'telemetry'>('code');
 
   return (
@@ -84,7 +86,12 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
         ) : (
           <div className="min-h-full p-4 sm:p-6 lg:p-8">
             {activeTab === 'code' && <CodePanel code={rocmCode} />}
-            {activeTab === 'analytics' && <AnalyticsPanel log={auditLog} />}
+            {activeTab === 'analytics' && (
+              <>
+                <AnalyticsPanel log={auditLog} />
+                <VerificationGate verification={verification} />
+              </>
+            )}
             {activeTab === 'telemetry' && <TelemetryPanel />}
           </div>
         )}

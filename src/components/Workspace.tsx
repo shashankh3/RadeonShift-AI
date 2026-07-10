@@ -11,6 +11,7 @@ export default function Workspace() {
   const [hasTranslated, setHasTranslated] = useState(false);
   const [rocmCode, setRocmCode] = useState('');
   const [auditLog, setAuditLog] = useState('');
+  const [verification, setVerification] = useState<any>(null);
 
   const handleMigrate = async (cudaCode: string) => {
     setIsTranslating(true);
@@ -19,6 +20,7 @@ export default function Workspace() {
       const response = await translateCode(cudaCode);
       setRocmCode(response.rocm_code);
       setAuditLog(response.audit_log);
+      setVerification(response.verification);
       setHasTranslated(true);
     } catch (error) {
       alert('Translation failed. Please ensure the backend is running and reachable.');
@@ -47,6 +49,7 @@ export default function Workspace() {
             hasTranslated={hasTranslated}
             rocmCode={rocmCode}
             auditLog={auditLog}
+            verification={verification}
           />
         </div>
         <div className="shrink-0 border-t border-white/10 bg-[#040407] p-4">

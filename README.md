@@ -77,6 +77,36 @@ graph TD
 > **Enterprise CI/CD Integration:** Operates headlessly via GitHub Actions. Developers open a Pull Request, and RadeonShift automatically comments a migration audit on the PR.
 >
 > **Live Hardware Telemetry:** Interrogates `rocm-smi` directly from the AMD Developer Cloud to ensure the target environment matches the compilation target.
+>
+> **Migration Verification Gate:** A rigorous validation stage combining deep static analysis for PTX lock-in and a test compilation via `hipcc`, guaranteeing factual readiness.
+
+---
+
+## 🛡️ VERIFICATION & TRUST MODEL
+
+*RadeonShift distinguishes static analysis, compile verification, and runtime benchmarking. It never reports runtime performance unless a kernel was actually measured.*
+
+### Verification Flow
+
+```mermaid
+graph LR
+    A[Translated HIP] --> B{hipcc available?}
+    B -->|Yes| C[Attempt Compile]
+    B -->|No| D[Static Portability Scan]
+    C --> E{Success?}
+    E -->|Yes| F[COMPILE VERIFIED]
+    E -->|No| G[COMPILATION BLOCKED]
+```
+
+### Verification States
+
+| Status | Description |
+|--------|-------------|
+| `compile_verified` | HIP source compiled successfully via `hipcc` with no critical static findings. |
+| `verified_with_warnings` | Compiled successfully, but manual review is advised due to warnings. |
+| `compile_blocked` | Compilation failed. Evidence ID and stderr are provided for debugging. |
+| `static_review_required` | Compiler unavailable. Static analysis found issues requiring manual review. |
+| `verification_unavailable` | Compiler unavailable, but no critical static findings detected. |
 
 ---
 
@@ -104,6 +134,7 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
+*Note: You can check backend capabilities via `GET http://localhost:8000/verification-capabilities`.*
 
 ### 3. Option B: Manual Frontend Setup (Next.js)
 ```bash

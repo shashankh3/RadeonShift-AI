@@ -11,7 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Check Configuration
+        id: check-config
+        run: |
+          if [ -z "${{ secrets.RADEONSHIFT_BACKEND_URL }}" ]; then
+            echo "missing_url=true" >> $GITHUB_OUTPUT
+            echo "::warning::RADEONSHIFT_BACKEND_URL is not configured. Skipping RadeonShift Audit."
+            echo "### ⚠️ RadeonShift Audit Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "Remote RadeonShift audit was skipped because \`RADEONSHIFT_BACKEND_URL\` is not configured." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "missing_url=false" >> $GITHUB_OUTPUT
+          fi
+          
       - name: Find CUDA files in PR
+        if: steps.check-config.outputs.missing_url == 'false'
         id: find-cuda
         run: |
           FILES=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E '\.(cu|cuh)$' || true)
@@ -20,7 +33,7 @@ jobs:
           echo "files=$FIRST_FILE" >> $GITHUB_OUTPUT
           
       - name: Send to RadeonShift Backend
-        if: steps.find-cuda.outputs.files != ''
+        if: steps.check-config.outputs.missing_url == 'false' && steps.find-cuda.outputs.files != ''
         id: translate
         run: |
           # Read file content and escape it for JSON payload
@@ -32,39 +45,69 @@ jobs:
             -d "$PAYLOAD")
           echo "response=$RESPONSE" >> $GITHUB_OUTPUT
           
-      - name: Comment MoA Report on PR
-        if: steps.find-cuda.outputs.files != ''
+      - name: Post PR Comment and Summary
+        if: steps.check-config.outputs.missing_url == 'false' && steps.find-cuda.outputs.files != ''
         uses: actions/github-script@v7
         with:
           script: |
             const response = JSON.parse('${{ steps.translate.outputs.response }}');
             const auditLog = JSON.parse(response.audit_log);
+            const verification = response.verification;
             const score = auditLog.readiness_score;
             const emoji = score >= 80 ? '🟢' : score >= 50 ? '🟡' : '🔴';
             
-            const ptxRisks = auditLog.ptx_risks.length > 0 ? '- ' + auditLog.ptx_risks.join('\n- ') : 'No critical NVIDIA-specific risks detected.';
-            const optimizations = auditLog.wavefront_optimizations.length > 0 ? '- ' + auditLog.wavefront_optimizations.join('\n- ') : 'No additional optimizations required.';
+            const vStatus = verification ? verification.status : 'unknown';
+            const vEmoji = vStatus === 'compile_verified' ? '✅' : vStatus === 'compile_blocked' ? '❌' : vStatus.includes('review') || vStatus.includes('warnings') ? '⚠️' : '⚪';
             
-            const body = `## RadeonShift MI300X Migration Audit ${emoji}
+            const ptxRisks = auditLog.ptx_risks.length > 0 ? auditLog.ptx_risks.length : 0;
+            const warpRisks = verification && verification.static_analysis ? verification.static_analysis.warp32_assumptions : 0;
+            
+            const body = `<!-- RadeonShiftAudit -->
+            ## RadeonShift MI300X Migration Audit ${emoji}
             
             **Compilation Readiness Score:** ${score}/100
             
-            ### Agent A — NVIDIA Purist Audit
-            ${ptxRisks}
+            ### Verification Gate ${vEmoji}
+            - **Status:** \`${vStatus}\`
+            - **Evidence ID:** \`${verification ? verification.evidence_id : 'N/A'}\`
+            - **PTX Risks:** ${ptxRisks}
+            - **Warp32 Assumptions:** ${warpRisks}
             
-            ### Agent B — AMD MI300X Optimizer
-            ${optimizations}
-            
-            ### Translated HIP Code
-            \`\`\`cpp
-            ${response.rocm_code}
-            \`\`\`
+            _Note: No uploaded kernel was automatically executed. RadeonShift distinguishes static analysis, compile verification, and runtime benchmarking._
             
             ---
             _Automated by RadeonShift AI — Migration-as-a-Service for AMD MI300X_`;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            
+            // Add job summary
+            await core.summary
+              .addHeading(`RadeonShift Audit: ${vStatus} ${vEmoji}`)
+              .addRaw(body)
+              .write();
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: body
+              issue_number: context.issue.number,
             });
+            const existingComment = comments.find(c => c.body.includes('<!-- RadeonShiftAudit -->'));
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+            
+            if (vStatus === 'compile_blocked') {
+              core.setFailed("RadeonShift Verification Gate blocked compilation.");
+            }
