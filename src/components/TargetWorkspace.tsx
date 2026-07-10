@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Code2, BrainCircuit, Activity, CheckCircle2, AlertTriangle, Timer, Cpu, Layers, Database } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import VerificationGate from './VerificationGate';
+import BenchmarkPanel from './BenchmarkPanel';
 
 interface TargetWorkspaceProps {
   isTranslating: boolean;
@@ -90,6 +91,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
               <>
                 <AnalyticsPanel log={auditLog} />
                 <VerificationGate verification={verification} />
+                <BenchmarkPanel />
               </>
             )}
             {activeTab === 'telemetry' && <TelemetryPanel verification={verification} log={auditLog} />}

@@ -5,7 +5,7 @@ export interface TranslationResponse {
 }
 
 export async function translateCode(code: string): Promise<TranslationResponse> {
-  const response = await fetch('http://localhost:8000/translate', {
+  const response = await fetch('http://localhost:8001/translate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,4 +25,47 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
   }
 
   return data as TranslationResponse;
+}
+
+export interface BenchmarkResponse {
+  status: "passed" | "compile_failed" | "runtime_failed" | "unavailable" | "failed_validation";
+  benchmark: {
+    name: string;
+    size: number;
+    iterations: number;
+    elapsed_ms: number;
+    throughput_gbps: number;
+    bytes_processed: number;
+    gpu_name: string | null;
+  };
+  compile: {
+    attempted: boolean;
+    status: "passed" | "failed" | "unavailable";
+    stderr_summary: string | null;
+    duration_ms: number;
+  };
+  telemetry: {
+    before: any;
+    after: any;
+    source: string;
+    note: string;
+  };
+  disclaimer: string;
+}
+
+export async function runBenchmark(size: number, iterations: number): Promise<BenchmarkResponse> {
+  const response = await fetch('http://localhost:8001/benchmark/vector-add', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ size, iterations }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Benchmark failed with status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data as BenchmarkResponse;
 }
