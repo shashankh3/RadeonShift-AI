@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: 'accounts/fireworks/models/deepseek-v4-flash',
         temperature: 0.1,
-        max_tokens: 300,
+        max_tokens: 1500,
         messages: [
           {
             role: 'system',
@@ -54,9 +54,12 @@ export async function POST(request: Request) {
     }
 
     const fireworksData = await fireworksRes.json();
-    const content = fireworksData.choices[0].message.content;
+    let content = fireworksData.choices[0].message.content;
     
-    // Aggressive regex extraction to strip markdown or <think> tags
+    // DeepSeek reasoning models output <think> blocks. Strip them completely.
+    content = content.replace(/<think>[\s\S]*?<\/think>/g, '');
+    
+    // Aggressive regex extraction to strip markdown
     const cleanJsonMatch = content.match(/\{[\s\S]*\}/);
     if (!cleanJsonMatch) {
       throw new Error("No valid JSON found in AI response");
