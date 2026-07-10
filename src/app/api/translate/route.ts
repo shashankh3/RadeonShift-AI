@@ -81,6 +81,17 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Translation Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    // TEMPORARY DEBUG: return error as 200 OK so frontend displays it instead of alerting
+    return NextResponse.json({
+      status: "success",
+      hardware: "AMD Instinct MI300X OAM",
+      rocm_code: "ERROR_DEBUG",
+      translated_code: "ERROR_DEBUG",
+      audit_log: JSON.stringify({
+        readiness_score: 0,
+        ptx_risks: [`Backend Error: ${error.message || 'Unknown'}`],
+        wavefront_optimizations: []
+      })
+    }, { status: 200 });
   }
 }
