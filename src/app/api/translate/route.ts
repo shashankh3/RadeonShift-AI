@@ -38,11 +38,11 @@ export async function POST(request: Request) {
         messages: [
           {
             role: 'system',
-            content: 'You are a headless API. You must analyze the provided CUDA and HIP code and output ONLY a valid JSON object matching this exact schema:\n{\n  "readiness_score": <integer 0-100 based on portability>,\n  "ptx_risks": ["<string detailing risk 1>", "<string detailing risk 2>"],\n  "wavefront_optimizations": ["<string detailing optimization 1>"]\n}\n\nAbsolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
+            content: 'You are a Senior AMD GPU Architect and an expert in CUDA to HIP translation. Your job is to translate the provided CUDA code into production-ready HIP C++ code. \n\nCRITICAL TRANSLATION INSTRUCTIONS:\n- Replace all `cuda*` API calls with `hip*` equivalents (e.g., cudaMalloc -> hipMalloc, cudaMemcpy -> hipMemcpy).\n- Replace `<cuda_runtime.h>` with `<hip/hip_runtime.h>`.\n- Maintain standard `__global__` or `__device__` kernel decorators (do not use __hip_global__ unless required).\n- Refactor any inline PTX assembly or warp-synchronous logic to be AMD-compatible (e.g., consider Wavefront 64 vs 32).\n\nYou must output ONLY a valid JSON object matching this exact schema:\n{\n  "translated_code": "<string containing the ENTIRE, fully translated HIP C++ source code>",\n  "readiness_score": <integer 0-100 based on portability>,\n  "ptx_risks": ["<string detailing risk 1>", "<string detailing risk 2>"],\n  "wavefront_optimizations": ["<string detailing optimization 1>"]\n}\n\nAbsolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
           },
           {
             role: 'user',
-            content: `CUDA:\n${cudaCode}\n\nHIP:\n${rocmCode}`
+            content: `Please translate this CUDA code to HIP:\n\n${cudaCode}`
           }
         ],
         response_format: { type: 'json_object' }
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
     if (!cleanJsonMatch) {
       // If AI failed to generate JSON, do not crash. Inject raw content into the UI.
       aiData = {
+        translated_code: rocmCode, // Fallback to regex
         readiness_score: 0,
         ptx_risks: [`AI generated non-JSON output: ${content.substring(0, 200)}`],
         wavefront_optimizations: ["Failed to parse AI response"]
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
         aiData = JSON.parse(cleanJsonMatch[0]);
       } catch (e) {
         aiData = {
+          translated_code: rocmCode, // Fallback to regex
           readiness_score: 0,
           ptx_risks: [`AI JSON Parse Error: ${cleanJsonMatch[0].substring(0, 200)}`],
           wavefront_optimizations: []
@@ -82,13 +84,20 @@ export async function POST(request: Request) {
       }
     }
 
-    // Return Real Data - no fallbacks
+    // Ensure we have translated code
+    const finalCode = aiData.translated_code || rocmCode;
+
+    // Return Real Data - no fallbacks for the audit log
     return NextResponse.json({
       status: "success",
       hardware: "AMD Instinct MI300X OAM",
-      rocm_code: rocmCode,
-      translated_code: rocmCode,
-      audit_log: JSON.stringify(aiData),
+      rocm_code: finalCode,
+      translated_code: finalCode,
+      audit_log: JSON.stringify({
+        readiness_score: aiData.readiness_score || 0,
+        ptx_risks: aiData.ptx_risks || [],
+        wavefront_optimizations: aiData.wavefront_optimizations || []
+      }),
     });
 
   } catch (error: any) {
