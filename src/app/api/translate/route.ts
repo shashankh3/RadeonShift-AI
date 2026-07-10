@@ -25,6 +25,9 @@ export async function POST(request: Request) {
       throw new Error("FIREWORKS_API_KEY is not set");
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s safe timeout limit
+
     const fireworksRes = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -44,10 +47,12 @@ export async function POST(request: Request) {
             role: 'user',
             content: `Translate the following CUDA code to HIP:\n\n${cudaCode}`
           }
-        ],
-        response_format: { type: 'json_object' }
+        ]
       }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!fireworksRes.ok) {
       throw new Error(`Fireworks API error: ${fireworksRes.statusText}`);
