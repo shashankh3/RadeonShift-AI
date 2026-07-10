@@ -54,11 +54,11 @@ export async function POST(request: Request) {
         signal: controller.signal,
         body: JSON.stringify({
           model: 'accounts/fireworks/models/deepseek-v4-flash',
-          max_tokens: 150,
+          max_tokens: 350,
           messages: [
             {
               role: 'system',
-              content: 'You are an MoA auditor. Output ONLY a raw, minified JSON object with "readiness_score", "ptx_risks" (max 2 short items), and "wavefront_optimizations". No markdown formatting, no explanations.'
+              content: 'You are a headless API. You must output ONLY a valid JSON object containing exactly these keys: "readiness_score" (integer), "ptx_risks" (array of max 2 strings), and "wavefront_optimizations" (array of max 2 strings). Absolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
             },
             {
               role: 'user',
