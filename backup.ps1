@@ -14,8 +14,8 @@ while ($true) {
         Write-Host "Committing changes..."
         git commit -m $commitMessage
         
-        Write-Host "Pushing to origin main..."
-        git push origin main
+        Write-Host "Pushing to origin master..."
+        git push origin master
         
         Write-Host "Backup successful at $timestamp!"
     } else {

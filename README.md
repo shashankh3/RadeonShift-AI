@@ -86,6 +86,11 @@ graph TD
 
 *RadeonShift distinguishes static analysis, compile verification, and runtime benchmarking. It never reports runtime performance unless a kernel was actually measured.*
 
+### Trusted MI300X Benchmark Mode
+The platform includes an integrated hardware benchmarking path specifically for demonstration and validation. It runs a built-in, trusted HIP vector-add benchmark securely isolated from arbitrary user code. 
+
+**Trust Guarantee:** RadeonShift only reports benchmark metrics when a trusted HIP kernel was actually compiled and executed on the host. This path is entirely separate from the static code translation path.
+
 ### Verification Flow
 
 ```mermaid
