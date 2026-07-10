@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: 'accounts/fireworks/models/deepseek-v4-flash',
         temperature: 0.1,
-        max_tokens: 1500,
+        max_tokens: 8000,
         messages: [
           {
             role: 'system',
