@@ -38,15 +38,7 @@ export async function POST(request: Request) {
         messages: [
           {
             role: 'system',
-            content: 'You are a headless API. You must output ONLY a valid JSON object containing exactly these keys: "readiness_score" (integer), "ptx_risks" (array of max 2 strings), and "wavefront_optimizations" (array of max 2 strings). Absolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
-          },
-          {
-            role: 'user',
-            content: 'CUDA:\n__global__ void add() {}\n\nHIP:\n__hip_global__ void add() {}'
-          },
-          {
-            role: 'assistant',
-            content: '{\n  "readiness_score": 100,\n  "ptx_risks": [],\n  "wavefront_optimizations": []\n}'
+            content: 'You are a headless API. You must analyze the provided CUDA and HIP code and output ONLY a valid JSON object matching this exact schema:\n{\n  "readiness_score": <integer 0-100 based on portability>,\n  "ptx_risks": ["<string detailing risk 1>", "<string detailing risk 2>"],\n  "wavefront_optimizations": ["<string detailing optimization 1>"]\n}\n\nAbsolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
           },
           {
             role: 'user',
