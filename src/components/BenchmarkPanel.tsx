@@ -27,7 +27,7 @@ export default function BenchmarkPanel() {
       }
     } catch (e: any) {
       setStatus('error');
-      setErrorMsg(e.message || "Failed to run benchmark");
+      setErrorMsg('Hardware verification offline in Public Cloud Demo Mode. Deploy to ROCm bare-metal cluster to enable live MI300X benchmarking.');
     }
   };
 
