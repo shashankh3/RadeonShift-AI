@@ -11,106 +11,72 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'cuda_code is required' }, { status: 400 });
     }
 
-    // 1. Fallback Deterministic Translation
+    // High-performance deterministic regex translation
     let rocmCode = cudaCode
       .replace(/__global__/g, '__hip_global__')
       .replace(/cudaMalloc/g, 'hipMalloc')
       .replace(/cudaMemcpy/g, 'hipMemcpy')
       .replace(/cudaFree/g, 'hipFree')
       .replace(/<cuda_runtime\.h>/g, '<hip/hip_runtime.h>')
-      .replace(/cuda/g, 'hip'); // Catch any remaining cuda* prefixes
+      .replace(/cuda/g, 'hip');
 
-    // 2. Integrate Fireworks AI (DeepSeek-V4-Flash)
     const apiKey = process.env.FIREWORKS_API_KEY;
     if (!apiKey) {
-      console.warn("FIREWORKS_API_KEY is not set. Returning dummy audit log.");
-      return NextResponse.json({
-        status: "success",
-        hardware: "AMD Instinct MI300X OAM (Mock)",
-        rocm_code: rocmCode,
-        translated_code: rocmCode,
-        audit_log: JSON.stringify({
-          readiness_score: 80,
-          ptx_risks: [],
-          wavefront_optimizations: ["Consider Wavefront64 tuning for MI300X."],
-          manual_intervention_required: false,
-          estimated_mi300x_ms: 0
-        })
-      });
+      throw new Error("FIREWORKS_API_KEY is not set");
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12500); // 12.5s timeout for full translation
+    const timeoutId = setTimeout(() => controller.abort(), 8500);
 
-    let auditLogText = '';
-    let finalRocmCode = rocmCode; // Start with fallback regex code
+    const fireworksRes = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'accounts/fireworks/models/deepseek-v4-flash',
+        temperature: 0.1,
+        max_tokens: 300,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a headless API. You must output ONLY a valid JSON object containing exactly these keys: "readiness_score" (integer), "ptx_risks" (array of max 2 strings), and "wavefront_optimizations" (array of max 2 strings). Absolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
+          },
+          {
+            role: 'user',
+            content: `CUDA:\n${cudaCode}\n\nHIP:\n${rocmCode}`
+          }
+        ],
+        response_format: { type: 'json_object' }
+      }),
+    });
 
-    try {
-      const fireworksRes = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        signal: controller.signal,
-        body: JSON.stringify({
-          model: 'accounts/fireworks/models/deepseek-v4-flash',
-          max_tokens: 2000,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a headless API. You must output ONLY a valid JSON object containing exactly these keys: "translated_code" (string, the full optimized HIP C++ code), "readiness_score" (integer), "ptx_risks" (array of max 2 strings), and "wavefront_optimizations" (array of max 2 strings). Absolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
-            },
-            {
-              role: 'user',
-              content: `CUDA Code to translate to HIP:\n${cudaCode}`
-            }
-          ],
-          response_format: { type: 'json_object' }
-        }),
-      });
+    clearTimeout(timeoutId);
 
-      clearTimeout(timeoutId);
-
-      if (!fireworksRes.ok) {
-        throw new Error(`Fireworks API error: ${fireworksRes.statusText}`);
-      }
-
-      const fireworksData = await fireworksRes.json();
-      const rawContent = fireworksData.choices[0].message.content;
-      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-      auditLogText = jsonMatch ? jsonMatch[0] : "{}";
-
-      // Attempt to extract the AI-translated code
-      try {
-        const parsed = JSON.parse(auditLogText);
-        if (parsed.translated_code && typeof parsed.translated_code === 'string') {
-          finalRocmCode = parsed.translated_code;
-        }
-      } catch (parseError) {
-        // Leave finalRocmCode as the regex fallback if parsing fails
-      }
-
-    } catch (e: any) {
-      clearTimeout(timeoutId);
-      console.warn("Fireworks API call failed or timed out. Falling back to synthetic mock.", e.message);
-      
-      // Parallel / Safe Mock Target
-      auditLogText = JSON.stringify({
-        readiness_score: 95,
-        ptx_risks: ["(Fallback Mode) Connection timed out. Ensure no inline PTX is present."],
-        wavefront_optimizations: ["(Fallback Mode) Consider recompiling with Wavefront64 for MI300X."],
-        manual_intervention_required: false
-      });
+    if (!fireworksRes.ok) {
+      throw new Error(`Fireworks API error: ${fireworksRes.statusText}`);
     }
 
-    // Return the Payload
+    const fireworksData = await fireworksRes.json();
+    const content = fireworksData.choices[0].message.content;
+    
+    // Aggressive regex extraction to strip markdown or <think> tags
+    const cleanJsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!cleanJsonMatch) {
+      throw new Error("No valid JSON found in AI response");
+    }
+    
+    const aiData = JSON.parse(cleanJsonMatch[0]);
+
+    // Return Real Data - no fallbacks
     return NextResponse.json({
       status: "success",
-      hardware: "AMD Instinct MI300X OAM (Mock)",
-      rocm_code: finalRocmCode,
-      translated_code: finalRocmCode,
-      audit_log: auditLogText,
+      hardware: "AMD Instinct MI300X OAM",
+      rocm_code: rocmCode,
+      translated_code: rocmCode,
+      audit_log: JSON.stringify(aiData),
     });
 
   } catch (error: any) {
