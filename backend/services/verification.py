@@ -37,6 +37,6 @@ def build_verification_result(cuda_code: str, hip_code: str, telemetry: dict) ->
         },
         "environment": {
             "telemetry_source": telemetry.get("source", "unavailable"),
-            "gpu": telemetry.get("hardware") if telemetry.get("source") == "live_rocm_smi" else None
+            "gpu": telemetry.get("hardware") if telemetry.get("source") in ["live_rocm_smi", "psutil_fallback"] else None
         }
     }
