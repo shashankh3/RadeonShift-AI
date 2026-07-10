@@ -85,8 +85,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       status: "success",
       hardware: "AMD Instinct MI300X OAM",
-      rocm_code: "ERROR_DEBUG",
-      translated_code: "ERROR_DEBUG",
+      rocm_code: `Backend Error: ${error.message || 'Unknown'}`,
+      translated_code: `Backend Error: ${error.message || 'Unknown'}`,
       audit_log: JSON.stringify({
         readiness_score: 0,
         ptx_risks: [`Backend Error: ${error.message || 'Unknown'}`],
