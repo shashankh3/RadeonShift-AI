@@ -42,6 +42,14 @@ export async function POST(request: Request) {
           },
           {
             role: 'user',
+            content: 'CUDA:\n__global__ void add() {}\n\nHIP:\n__hip_global__ void add() {}'
+          },
+          {
+            role: 'assistant',
+            content: '{\n  "readiness_score": 100,\n  "ptx_risks": [],\n  "wavefront_optimizations": []\n}'
+          },
+          {
+            role: 'user',
             content: `CUDA:\n${cudaCode}\n\nHIP:\n${rocmCode}`
           }
         ],
