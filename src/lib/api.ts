@@ -7,7 +7,7 @@ export interface TranslationResponse {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 export async function translateCode(code: string): Promise<TranslationResponse> {
-  const response = await fetch(`${API_BASE_URL}/translate`, {
+  const response = await fetch('/api/translate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
