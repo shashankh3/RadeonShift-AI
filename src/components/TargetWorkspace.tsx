@@ -178,11 +178,19 @@ function AnalyticsPanel({ log }: { log: string }) {
     );
   }
 
-  const score = data.readiness_score || 0;
-  const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-yellow-400' : 'text-red-500';
-  const scoreBorder = score >= 80 ? 'border-emerald-500/30' : score >= 50 ? 'border-yellow-500/30' : 'border-red-500/30';
   const ptxRisks = data.ptx_risks || [];
   const optimizations = data.wavefront_optimizations || [];
+
+  let score = data.readiness_score;
+  if (score === undefined || score === null) {
+    score = 100;
+    if (ptxRisks.length > 0) score -= ptxRisks.length * 15;
+    if (optimizations.length > 0) score -= optimizations.length * 5;
+    score = Math.max(0, Math.min(100, score));
+  }
+
+  const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-yellow-400' : 'text-red-500';
+  const scoreBorder = score >= 80 ? 'border-emerald-500/30' : score >= 50 ? 'border-yellow-500/30' : 'border-red-500/30';
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
@@ -199,9 +207,9 @@ function AnalyticsPanel({ log }: { log: string }) {
             </div>
             <div className="flex-1 mt-4 sm:mt-0">
               <p className="text-[15px] font-medium leading-7 text-white/90 border-l border-white/20 pl-6">
-                {score >= 80 ? "Kernel is highly optimized for MI300X execution. No critical PTX blocks found." : 
-                 score >= 50 ? "Kernel requires some manual review for optimal performance." : 
-                 "Significant manual PTX translation required before deployment."}
+                {score >= 80 
+                  ? "Code is highly portable. Ready for AMD hardware deployment." 
+                  : "Manual optimizations or syntax revisions suggested before deployment."}
               </p>
             </div>
           </div>
