@@ -40,9 +40,10 @@ export async function POST(request: Request) {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8500); // 8.5s timeout to give LLM enough time
+    const timeoutId = setTimeout(() => controller.abort(), 12500); // 12.5s timeout for full translation
 
     let auditLogText = '';
+    let finalRocmCode = rocmCode; // Start with fallback regex code
 
     try {
       const fireworksRes = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
@@ -54,15 +55,15 @@ export async function POST(request: Request) {
         signal: controller.signal,
         body: JSON.stringify({
           model: 'accounts/fireworks/models/deepseek-v4-flash',
-          max_tokens: 350,
+          max_tokens: 2000,
           messages: [
             {
               role: 'system',
-              content: 'You are a headless API. You must output ONLY a valid JSON object containing exactly these keys: "readiness_score" (integer), "ptx_risks" (array of max 2 strings), and "wavefront_optimizations" (array of max 2 strings). Absolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
+              content: 'You are a headless API. You must output ONLY a valid JSON object containing exactly these keys: "translated_code" (string, the full optimized HIP C++ code), "readiness_score" (integer), "ptx_risks" (array of max 2 strings), and "wavefront_optimizations" (array of max 2 strings). Absolutely NO conversational preamble, NO markdown formatting, NO backticks, and NO explanations. Your response MUST begin with { and end with }.'
             },
             {
               role: 'user',
-              content: `CUDA:\n${cudaCode}\n\nHIP:\n${rocmCode}`
+              content: `CUDA Code to translate to HIP:\n${cudaCode}`
             }
           ],
           response_format: { type: 'json_object' }
@@ -79,6 +80,17 @@ export async function POST(request: Request) {
       const rawContent = fireworksData.choices[0].message.content;
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
       auditLogText = jsonMatch ? jsonMatch[0] : "{}";
+
+      // Attempt to extract the AI-translated code
+      try {
+        const parsed = JSON.parse(auditLogText);
+        if (parsed.translated_code && typeof parsed.translated_code === 'string') {
+          finalRocmCode = parsed.translated_code;
+        }
+      } catch (parseError) {
+        // Leave finalRocmCode as the regex fallback if parsing fails
+      }
+
     } catch (e: any) {
       clearTimeout(timeoutId);
       console.warn("Fireworks API call failed or timed out. Falling back to synthetic mock.", e.message);
@@ -96,8 +108,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       status: "success",
       hardware: "AMD Instinct MI300X OAM (Mock)",
-      rocm_code: rocmCode,
-      translated_code: rocmCode,
+      rocm_code: finalRocmCode,
+      translated_code: finalRocmCode,
       audit_log: auditLogText,
     });
 
