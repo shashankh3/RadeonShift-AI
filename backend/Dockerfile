@@ -9,10 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     perl \
     && rm -rf /var/lib/apt/lists/*
-
-RUN pip3 install rocminstaller
-RUN rocminstaller --version 6.2
-
 WORKDIR /app
 
 COPY requirements.txt .

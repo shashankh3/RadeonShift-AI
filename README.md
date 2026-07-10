@@ -89,7 +89,14 @@ cp .env.example .env
 # Edit .env with your FIREWORKS_API_KEY
 ```
 
-### 2. Backend Setup (FastAPI)
+### 2. Option A: Run via Docker (Recommended)
+This method ensures zero compatibility hiccups on any PC.
+```bash
+docker-compose up --build
+```
+*The Frontend will be available at `http://localhost:3000` and Backend at `http://localhost:8000`.*
+
+### 2. Option B: Manual Backend Setup (FastAPI)
 ```bash
 cd backend
 python -m venv .venv
@@ -98,7 +105,7 @@ pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 3. Frontend Setup (Next.js)
+### 3. Option B: Manual Frontend Setup (Next.js)
 ```bash
 # In a new terminal window at the project root
 npm install
