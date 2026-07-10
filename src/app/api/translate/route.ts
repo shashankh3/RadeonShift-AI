@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s sharp timeout window
+    const timeoutId = setTimeout(() => controller.abort(), 8500); // 8.5s timeout to give LLM enough time
 
     let auditLogText = '';
 
