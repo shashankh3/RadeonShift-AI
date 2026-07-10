@@ -25,16 +25,12 @@ export async function POST(request: Request) {
       throw new Error("FIREWORKS_API_KEY is not set");
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8500);
-
     const fireworksRes = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
-      signal: controller.signal,
       body: JSON.stringify({
         model: 'accounts/fireworks/models/deepseek-v4-flash',
         temperature: 0.1,
@@ -52,8 +48,6 @@ export async function POST(request: Request) {
         response_format: { type: 'json_object' }
       }),
     });
-
-    clearTimeout(timeoutId);
 
     if (!fireworksRes.ok) {
       throw new Error(`Fireworks API error: ${fireworksRes.statusText}`);
