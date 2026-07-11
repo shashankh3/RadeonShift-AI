@@ -45,6 +45,41 @@ RadeonShift AI is a deterministic Mixture of Agents (MoA) pipeline that translat
 
 ---
 
+## Step 1: The Awaiting Migration State
+![height:350px](./docs/step1.png)
+
+Before translation begins, the platform awaits the CUDA payload. The user inputs their native NVIDIA code into the **CUDA Kernel Analyzer**. The system prepares for the AI-assisted hardware pass.
+
+---
+
+## Step 2: HIP Optimization Core
+![height:350px](./docs/step2.png)
+
+Upon engaging the ROCm translation pass, the core converts the syntax. The resulting C++ HIP code (`target_kernel.hip.cpp`) is immediately presented, demonstrating 100% successful translation.
+
+---
+
+## Step 3: Architecture Analytics
+![height:350px](./docs/step3.png)
+
+The MoA Audit Scorecard evaluates the code. Here, the readiness score is 100/100, proving high portability. Our dual AI agents verify there are no hidden PTX risks or lock-ins.
+
+---
+
+## Step 4: Live Hardware Telemetry
+![height:350px](./docs/step4.png)
+
+Instead of simulated data, the platform connects directly to the remote bare-metal AMD MI300X instance, verifying the exact compile duration and matching the live hardware target.
+
+---
+
+## Step 5: Bare-Metal Benchmark Execution
+![height:350px](./docs/step5.png)
+
+Finally, the translated HIP code is natively compiled and executed on the MI300X. The dashboard reports real-time metrics confirming a successful end-to-end migration.
+
+---
+
 ## Business Value & ROI
 
 **The 5,000x ROI Model**
@@ -64,12 +99,30 @@ RadeonShift AI is a deterministic Mixture of Agents (MoA) pipeline that translat
 
 ---
 
+## Engineering Retrospective & Challenges
+
+**Bridging a Serverless Frontend with Bare-Metal Hardware**
+
+1. **Live Telemetry:** Defeated Next.js caching via `force-dynamic` to stream real-time MI300X metrics.
+2. **Defensive APIs:** Built robust frontend parsing to gracefully handle sudden JSON schema changes.
+3. **CORS Routing:** Bypassed strict mixed-content blocks by tunneling through Pinggy and Next.js `rewrites()`.
+4. **Transparent Debugging:** Overhauled error handling to surface remote Python stack traces in the UI.
+5. **Deterministic AI Prompts:** Forced LLMs to generate explicit confirmations for clean code, preventing UI state collapses.
+
+---
+
 ## Closing & Team
 
 **RadeonShift AI** is bridging the gap between legacy NVIDIA codebases and the future of AMD compute.
 
-- **GitHub Repository:** [Insert Link]
-- **Live Demo:** [Insert Link]
+- **GitHub Repository:** [shashankh3/RadeonShift-AI](https://github.com/shashankh3/RadeonShift-AI)
+- **Live Demo:** [radeon-shift-ai.vercel.app](https://radeon-shift-ai.vercel.app/)
 
-**Thank You!**
-*(Add your team names or contact info here)*
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+  <div>
+    <h2 style="margin: 0 0 10px 0; color: #fff;">Thank You!</h2>
+    <strong>Shashank Hirwani</strong><br>
+    <span style="color: #888;">Unknown Hacker (shashankh366207)</span>
+  </div>
+  <img src="./docs/profile.png" width="160" style="border-radius: 12px;">
+</div>
