@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/pinggy/:path*',
-        destination: 'https://dfvdj-36-150-116-194.free.pinggy.net/:path*',
+        destination: 'https://edrae-36-150-116-194.free.pinggy.net/:path*',
       },
     ];
   },
