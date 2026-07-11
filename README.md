@@ -20,8 +20,9 @@ The platform is split into a highly responsive web frontend with serverless tran
 * **Core Functionality:** Streams the AI audit directly to the client. Features highly dynamic dashboarding and a built-in ROI calculator modeling manual engineering hours vs. automated compute costs.
 
 **2. The Bare-Metal Hardware Backend (Python & FastAPI)**
-While the frontend handles the syntax mapping and AI auditing, the execution environment sits on a Dockerized FastAPI server designed for ROCm-enabled bare-metal instances, tunneled securely to the frontend via Pinggy.
-* **MoA AI Orchestrator:** Uses Fireworks AI (DeepSeek V4) to run two parallel agents:
+While the frontend manages the user interface, state, and dynamic rendering, all the heavy lifting sits on a Dockerized FastAPI server designed for ROCm-enabled bare-metal instances, tunneled securely to the frontend via Pinggy. The backend directly orchestrates:
+* **Syntax Translation:** Executes AMD's native `hipify-perl` tool via subprocess to deterministically map CUDA code to C++ HIP syntax.
+* **MoA AI Orchestrator:** Uses Fireworks AI (DeepSeek V4) to run two parallel agents over the translated code:
   * **Agent A (NVIDIA Purist):** Flags PTX/lock-in risks.
   * **Agent B (AMD Optimizer):** Suggests MI300X specific tuning (64-lane wavefronts).
 * **Trusted Kernel Compilation:** Compiles benchmark kernels on the fly using `hipcc` and executes them directly on the host AMD GPU to validate the compiler toolchain.
