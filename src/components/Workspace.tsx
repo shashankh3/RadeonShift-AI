@@ -22,8 +22,9 @@ export default function Workspace() {
       setAuditLog(response.audit_log);
       setVerification(response.verification);
       setHasTranslated(true);
-    } catch (error) {
-      alert('Translation failed. Please ensure the backend is running and reachable.');
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message || 'Translation failed. Please ensure the backend is running and reachable.');
     } finally {
       setIsTranslating(false);
     }
