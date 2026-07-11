@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="./docs/logo.png" alt="RadeonShift AI Logo" width="300" />
+</div>
+
 ### 🚀 RadeonShift AI
 
 **Accelerating the MI300X Hardware Migration via Generative AI**
