@@ -31,3 +31,40 @@ While the frontend handles the syntax mapping and AI auditing, the execution env
 
 * **Environment-Aware Fallback:** If deployed on a host without ROCm tooling or AMD GPU access, the backend transparently reports hardware verification as unavailable while keeping all frontend translation and AI audit flows fully operational.
 * **Compatibility Fallback:** If the primary AI translation path fails or hallucinates, the system falls back to a lightweight heuristic syntax conversion path. This ensures the application remains responsive without fabricating hardware validation, injecting the raw LLM output into an audit log for manual engineering review.
+
+### ✨ Features
+
+* **CUDA to HIP Translation:** Automated mapping of memory APIs, grid launches, and syntax.
+* **Mixture of Agents (MoA) Audit:** Deep analysis for AMD Instinct architecture specifics (e.g., 64-wide wavefronts).
+* **Hardware Verification (Bare-metal):** Optional live ROCm compilation and benchmark execution to validate toolchain.
+* **Cost & ROI Calculator:** Built-in module projecting engineering hours saved vs. compute cost.
+* **Degraded Fallback:** Robust offline and local dev handling that clearly reports hardware as unavailable rather than simulated.
+
+### 🛠️ Setup & Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url>
+   cd "RadeonShift AI"
+   ```
+2. **Environment Variables:**
+   Copy `.env.example` to `.env` and fill in your `FIREWORKS_API_KEY`.
+   ```bash
+   cp .env.example .env
+   ```
+3. **Frontend (Next.js):**
+   ```bash
+   npm install
+   npm run dev
+   ```
+4. **Backend (FastAPI - Optional):**
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   uvicorn api.main:app --host 0.0.0.0 --port 8000
+   ```
+
+### 📸 Screenshots
+
+*(Add screenshots of your application here, e.g., the editor, the telemetry dashboard, and the MoA audit results)*
+![RadeonShift AI Dashboard](./docs/screenshot1.png)

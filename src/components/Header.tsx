@@ -5,9 +5,9 @@ import { Cpu, Database, Activity, Zap } from 'lucide-react';
 
 export default function Header() {
   const [telemetry, setTelemetry] = useState({
-    gpu: 'AMD Instinct MI300X',
-    vram: '14.2 / 192.0 GB',
-    compute: '42%'
+    gpu: '--',
+    vram: '--',
+    compute: '--'
   });
   const [isLive, setIsLive] = useState(false);
 
@@ -20,15 +20,15 @@ export default function Header() {
         const data = await res.json();
         if (mounted) {
           setTelemetry({
-            gpu: data.gpu || 'AMD Instinct MI300X',
-            vram: data.vram || '14.2 / 192.0 GB',
-            compute: data.compute || '42%'
+            gpu: data.gpu || 'Unavailable',
+            vram: data.vram || '--',
+            compute: data.compute || '--'
           });
           setIsLive(true);
         }
       } catch (e) {
         if (mounted) {
-          setIsLive(true); // Mock live connection even on failure
+          setIsLive(false); // Live connection failed
         }
       }
     };

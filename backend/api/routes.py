@@ -29,8 +29,8 @@ async def health():
             raise Exception("rocm-smi failed")
     except Exception:
         return {
-            "status": "simulated",
-            "hardware": "AMD Instinct MI300X OAM (Mock)",
+            "status": "degraded",
+            "hardware": "Unavailable (Hardware Check Failed)",
             "source": "psutil_fallback"
         }
 

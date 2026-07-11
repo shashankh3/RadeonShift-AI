@@ -16,8 +16,8 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       status: "operational",
-      hardware: "Mocked AMD MI300X (Local Dev)",
-      source: "mock_backend"
+      hardware: "Hardware Verification Unavailable (Local Dev)",
+      source: "local_fallback"
     }));
   } else if (req.url === '/translate' && req.method === 'POST') {
     let body = '';
@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       
-      const mockAuditLog = {
+      const fallbackAuditLog = {
         readiness_score: 80,
         ptx_risks: ["Line 42: Inline PTX detected"],
         wavefront_optimizations: ["Consider using 64-lane wavefronts for MI300X"],
@@ -36,8 +36,8 @@ const server = http.createServer((req, res) => {
       };
 
       res.end(JSON.stringify({
-        rocm_code: "// MOCKED ROCM CODE\n#include <hip/hip_runtime.h>\n\n__hip_global__ void test() {\n    // Translated\n}",
-        audit_log: JSON.stringify(mockAuditLog)
+        rocm_code: "// LOCAL FALLBACK ROCM CODE\n#include <hip/hip_runtime.h>\n\n__hip_global__ void test() {\n    // Translated\n}",
+        audit_log: JSON.stringify(fallbackAuditLog)
       }));
     });
   } else {
@@ -47,5 +47,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(8000, '0.0.0.0', () => {
-  console.log('Mock backend listening on http://localhost:8000');
+  console.log('Local fallback backend listening on http://localhost:8000');
 });

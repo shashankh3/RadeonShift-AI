@@ -138,7 +138,7 @@ export default function BenchmarkPanel() {
               <StatBlock label="Elapsed Time" value={result.benchmark.elapsed_ms.toFixed(2)} unit="ms" />
               <StatBlock label="Throughput" value={result.benchmark.throughput_gbps.toFixed(1)} unit="GB/s" />
               <StatBlock label="Elements" value={(result.benchmark.size / 1000000).toFixed(1)} unit="M" />
-              <StatBlock label="GPU" value={result.benchmark.gpu_name || 'gfx942'} unit="" />
+              <StatBlock label="GPU" value={result.benchmark.gpu_name || 'Unavailable'} unit="" />
             </div>
 
             <div className="mt-4 p-3 bg-white/5 border border-white/10 text-xs text-white/50 italic flex items-start gap-2">

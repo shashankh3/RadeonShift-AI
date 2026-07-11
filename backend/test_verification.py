@@ -31,11 +31,11 @@ def test_static_scan():
     assert result["manual_review_required"] == True
     print("Static scan tests passed.")
     
-def test_compile_mock():
+def test_compile_fallback():
     # Because we might not have hipcc, just check it handles the lack of hipcc gracefully
     result = attempt_hip_compile("int main() { return 0; }")
     print("Compile test result:", result)
     
 if __name__ == "__main__":
     test_static_scan()
-    test_compile_mock()
+    test_compile_fallback()
