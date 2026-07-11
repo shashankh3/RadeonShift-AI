@@ -4,10 +4,10 @@ export interface TranslationResponse {
   verification?: any;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+const API_BASE_URL = 'https://dfvdj-36-150-116-194.free.pinggy.net';
 
 export async function translateCode(code: string): Promise<TranslationResponse> {
-  const response = await fetch('/api/translate', {
+  const response = await fetch(`${API_BASE_URL}/translate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

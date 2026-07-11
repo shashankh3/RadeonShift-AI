@@ -5,7 +5,7 @@ import { Cpu, Database, Activity, Zap } from 'lucide-react';
 
 export default function Header() {
   const [telemetry, setTelemetry] = useState({
-    gpu: '--',
+    gpu: 'Fetching Live Telemetry...',
     vram: '--',
     compute: '--'
   });
@@ -15,12 +15,12 @@ export default function Header() {
     let mounted = true;
     const fetchTelemetry = async () => {
       try {
-        const res = await fetch('http://localhost:8000/telemetry');
+        const res = await fetch('https://dfvdj-36-150-116-194.free.pinggy.net/health');
         if (!res.ok) throw new Error('Fetch failed');
         const data = await res.json();
         if (mounted) {
           setTelemetry({
-            gpu: data.gpu || 'Unavailable',
+            gpu: data.hardware || 'Hardware Unavailable',
             vram: data.vram || '--',
             compute: data.compute || '--'
           });
@@ -29,6 +29,11 @@ export default function Header() {
       } catch (e) {
         if (mounted) {
           setIsLive(false); // Live connection failed
+          setTelemetry({
+            gpu: 'Hardware Unavailable',
+            vram: '--',
+            compute: '--'
+          });
         }
       }
     };
