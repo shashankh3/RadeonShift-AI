@@ -14,7 +14,7 @@ async def call_agent_a(cuda_code: str) -> dict:
     if not FIREWORKS_API_KEY:
         return {"ptx_risks": [], "manual_intervention_required": False}
         
-    prompt = "You are an NVIDIA Purist Auditor. Identify NVIDIA-specific hardcoding like PTX and warp assumptions. Output JSON with 'ptx_risks': list of strings and 'manual_intervention_required': boolean."
+    prompt = "You are an NVIDIA Purist Auditor. Identify NVIDIA-specific hardcoding like PTX and warp assumptions. If no risks exist, you MUST still provide 3 detailed bullet points confirming the absence of these risks and verifying portability. Output JSON with 'ptx_risks': list of strings and 'manual_intervention_required': boolean."
     payload = {
         "model": "accounts/fireworks/models/deepseek-v4-flash",
         "messages": [
@@ -50,7 +50,7 @@ async def call_agent_b(cuda_code: str, hip_code: str) -> dict:
     if not FIREWORKS_API_KEY:
         return {"wavefront_optimizations": [], "estimated_mi300x_ms": 0.0}
         
-    prompt = "You are an AMD Optimizer. Suggest MI300X specific optimizations (e.g. 64-lane wavefronts). Output JSON with 'wavefront_optimizations': list of strings and 'estimated_mi300x_ms': float."
+    prompt = "You are an AMD Optimizer. Suggest MI300X specific optimizations (e.g. 64-lane wavefronts). If no optimizations are needed, you MUST still provide 3 detailed bullet points explaining why the current architecture choices are already optimal for MI300X. Output JSON with 'wavefront_optimizations': list of strings and 'estimated_mi300x_ms': float."
     payload = {
         "model": "accounts/fireworks/models/deepseek-v4-flash",
         "messages": [
