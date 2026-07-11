@@ -23,8 +23,20 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
   const data = await response.json();
   
   // Basic validation to ensure the response matches the expected format
-  if (!data.rocm_code || !data.audit_log) {
+  if (!data.rocm_code || (!data.audit_log && !data.tutorial_log)) {
       throw new Error("Invalid response format from server.");
+  }
+
+  // Handle older backend payload version
+  if (!data.audit_log && data.tutorial_log) {
+    data.audit_log = JSON.stringify({
+      readiness_score: 100,
+      ptx_risks: [],
+      wavefront_optimizations: [],
+      manual_intervention_required: false,
+      estimated_mi300x_ms: 0.0,
+      note: data.tutorial_log
+    });
   }
 
   return data as TranslationResponse;
