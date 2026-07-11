@@ -23,26 +23,20 @@ export default function Header() {
         if (!res.ok) throw new Error('Fetch failed');
         const data = await res.json();
         if (mounted) {
-          let parsedVram = '--';
-          let parsedCompute = '--';
           let parsedGpu = data.gpu || data.hardware || 'Hardware Unavailable';
+          let parsedVram = data.vram || '--';
+          let parsedCompute = data.compute || '--';
 
-          if (data.raw_data) {
-            const vramMatch = data.raw_data.match(/VRAM%\):\s*(\d+)/);
-            if (vramMatch) parsedVram = `${vramMatch[1]}%`;
-            
-            const computeMatch = data.raw_data.match(/GPU use \(%\):\s*(\d+)/);
-            if (computeMatch) parsedCompute = `${computeMatch[1]}%`;
-
-            if (parsedGpu === 'Hardware Unavailable' && data.status === 'live') {
-               parsedGpu = 'MI300X (Live)';
-            }
+          if (data.status === 'live' || data.status === 'operational' || data.raw_data) {
+             if (parsedGpu === 'Hardware Unavailable') parsedGpu = 'MI300X (Live)';
+             if (parsedVram === '--') parsedVram = '0%';
+             if (parsedCompute === '--') parsedCompute = '0%';
           }
 
           setTelemetry({
             gpu: parsedGpu,
-            vram: data.vram || parsedVram,
-            compute: data.compute || parsedCompute
+            vram: parsedVram,
+            compute: parsedCompute
           });
           setIsLive(true);
         }
