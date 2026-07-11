@@ -17,7 +17,19 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
   });
 
   if (!response.ok) {
-    throw new Error(`Translation failed with status: ${response.status}`);
+    let errorDetail = `Translation failed with status: ${response.status}`;
+    try {
+      const errData = await response.json();
+      if (errData.detail) {
+         errorDetail = `Backend Error: ${typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail)}`;
+      }
+    } catch(e) {
+      try {
+        const errText = await response.text();
+        if (errText) errorDetail = `Backend Error: ${errText.substring(0, 200)}`;
+      } catch(e2) {}
+    }
+    throw new Error(errorDetail);
   }
 
   const data = await response.json();
