@@ -11,6 +11,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Pinggy-No-Screen': 'true'
     },
     body: JSON.stringify({ cuda_code: code }),
   });
@@ -60,6 +61,7 @@ export async function runBenchmark(size: number, iterations: number): Promise<Be
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Pinggy-No-Screen': 'true'
     },
     body: JSON.stringify({ size, iterations }),
   });

@@ -15,12 +15,16 @@ export default function Header() {
     let mounted = true;
     const fetchTelemetry = async () => {
       try {
-        const res = await fetch('https://dfvdj-36-150-116-194.free.pinggy.net/health');
+        const res = await fetch('https://dfvdj-36-150-116-194.free.pinggy.net/telemetry', {
+          headers: {
+            'X-Pinggy-No-Screen': 'true'
+          }
+        });
         if (!res.ok) throw new Error('Fetch failed');
         const data = await res.json();
         if (mounted) {
           setTelemetry({
-            gpu: data.hardware || 'Hardware Unavailable',
+            gpu: data.gpu || data.hardware || 'Hardware Unavailable',
             vram: data.vram || '--',
             compute: data.compute || '--'
           });
