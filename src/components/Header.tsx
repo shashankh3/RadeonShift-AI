@@ -17,8 +17,10 @@ export default function Header() {
       try {
         const res = await fetch('/pinggy/telemetry', {
           headers: {
-            'X-Pinggy-No-Screen': 'true'
-          }
+            'X-Pinggy-No-Screen': 'true',
+            'Cache-Control': 'no-cache'
+          },
+          cache: 'no-store'
         });
         if (!res.ok) throw new Error('Fetch failed');
         const data = await res.json();

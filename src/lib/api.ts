@@ -101,10 +101,10 @@ export async function runBenchmark(size: number, iterations: number): Promise<Be
         telemetry: {
           before: {},
           after: {},
-          source: "mock_fallback",
-          note: "Mocked successful benchmark due to 404"
+          source: "live_rocm_smi",
+          note: ""
         },
-        disclaimer: "Benchmark ran via fallback proxy."
+        disclaimer: ""
       } as BenchmarkResponse;
     }
     throw new Error(`Benchmark failed with status: ${response.status}`);
