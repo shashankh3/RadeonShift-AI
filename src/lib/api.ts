@@ -4,7 +4,7 @@ export interface TranslationResponse {
   verification?: any;
 }
 
-const API_BASE_URL = 'https://dfvdj-36-150-116-194.free.pinggy.net';
+const API_BASE_URL = '/pinggy';
 
 export async function translateCode(code: string): Promise<TranslationResponse> {
   const response = await fetch(`${API_BASE_URL}/translate`, {

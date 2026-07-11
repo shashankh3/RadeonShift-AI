@@ -15,7 +15,7 @@ export default function Header() {
     let mounted = true;
     const fetchTelemetry = async () => {
       try {
-        const res = await fetch('https://dfvdj-36-150-116-194.free.pinggy.net/telemetry', {
+        const res = await fetch('/pinggy/telemetry', {
           headers: {
             'X-Pinggy-No-Screen': 'true'
           }
