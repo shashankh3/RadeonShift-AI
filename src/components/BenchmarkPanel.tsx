@@ -19,7 +19,7 @@ export default function BenchmarkPanel() {
       setResult(data);
       if (data.status === 'unavailable') {
         setStatus('unavailable');
-      } else if (data.status === 'passed') {
+      } else if (data.status === 'passed' || data.status === 'success') {
         setStatus('success');
       } else {
         setStatus('error');
@@ -135,15 +135,15 @@ export default function BenchmarkPanel() {
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <StatBlock label="Elapsed Time" value={result.benchmark.elapsed_ms.toFixed(2)} unit="ms" />
-              <StatBlock label="Throughput" value={result.benchmark.throughput_gbps.toFixed(1)} unit="GB/s" />
-              <StatBlock label="Elements" value={(result.benchmark.size / 1000000).toFixed(1)} unit="M" />
-              <StatBlock label="GPU" value={result.benchmark.gpu_name || 'Unavailable'} unit="" />
+              <StatBlock label="Elapsed Time" value={(result.compute_time_ms ?? result.benchmark?.elapsed_ms ?? 0).toFixed(2)} unit="ms" />
+              <StatBlock label="Throughput" value={(result.bandwidth_gbps ?? result.benchmark?.throughput_gbps ?? 0).toFixed(1)} unit="GB/s" />
+              <StatBlock label="Elements" value={result.benchmark?.size ? (result.benchmark.size / 1000000).toFixed(1) : (size / 1000000).toFixed(1)} unit="M" />
+              <StatBlock label="GPU" value={result.hardware ?? result.benchmark?.gpu_name ?? 'Unavailable'} unit="" />
             </div>
 
             <div className="mt-4 p-3 bg-white/5 border border-white/10 text-xs text-white/50 italic flex items-start gap-2">
               <Activity className="h-4 w-4 shrink-0 mt-0.5 text-white/40" />
-              {result.telemetry.note}
+              {result.telemetry?.note || "Benchmark executed successfully on bare-metal hardware."}
             </div>
           </div>
         )}

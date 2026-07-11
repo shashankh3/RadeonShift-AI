@@ -43,8 +43,8 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
 }
 
 export interface BenchmarkResponse {
-  status: "passed" | "compile_failed" | "runtime_failed" | "unavailable" | "failed_validation";
-  benchmark: {
+  status: "passed" | "compile_failed" | "runtime_failed" | "unavailable" | "failed_validation" | "success";
+  benchmark?: {
     name: string;
     size: number;
     iterations: number;
@@ -53,19 +53,22 @@ export interface BenchmarkResponse {
     bytes_processed: number;
     gpu_name: string | null;
   };
-  compile: {
+  compile?: {
     attempted: boolean;
     status: "passed" | "failed" | "unavailable";
     stderr_summary: string | null;
     duration_ms: number;
   };
-  telemetry: {
+  telemetry?: {
     before: any;
     after: any;
     source: string;
     note: string;
   };
-  disclaimer: string;
+  disclaimer?: string;
+  compute_time_ms?: number;
+  bandwidth_gbps?: number;
+  hardware?: string;
 }
 
 export async function runBenchmark(size: number, iterations: number): Promise<BenchmarkResponse> {
