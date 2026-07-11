@@ -29,9 +29,9 @@ RadeonShift AI is a deterministic Mixture of Agents (MoA) pipeline that translat
 
 ## Architecture
 
-1. **Frontend (Next.js Edge):** Highly responsive UI that streams the AI audit back to the user to bypass serverless timeouts.
-2. **AI Layer (Fireworks AI):** MoA pipeline with Agent A (PTX/Lock-in Risk) and Agent B (AMD Instinct Optimizer).
-3. **Hardware Backend (FastAPI):** Dockerized Python server running on a ROCm-enabled host. Executes `hipcc` and polls `rocm-smi` for real-time telemetry.
+1. **Frontend (Next.js Edge):** Manages user state and renders the dynamic dashboard.
+2. **Backend Engine (FastAPI via Pinggy):** The true core of the platform. It executes `hipify-perl` for syntax translation and orchestrates the MoA AI pipeline.
+3. **Hardware Verification:** The backend compiles the generated kernel via `hipcc` directly on a bare-metal ROCm instance and polls `rocm-smi` for live telemetry.
 
 ---
 
