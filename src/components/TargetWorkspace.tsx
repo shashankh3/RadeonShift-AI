@@ -268,7 +268,25 @@ function TelemetryPanel({ verification, log }: { verification?: any, log?: strin
 
   const durationSec = verification?.compile?.duration_ms ? (verification.compile.duration_ms / 1000).toFixed(3) : "--";
   const llmTimeSec = data?.estimated_mi300x_ms ? (data.estimated_mi300x_ms / 1000).toFixed(3) : "--";
-  const gpuName = verification?.environment?.gpu ? verification.environment.gpu.trim() : "Hardware Unavailable";
+  
+  const [liveGpu, setLiveGpu] = React.useState<string>("Loading...");
+  
+  React.useEffect(() => {
+    fetch('/pinggy/telemetry', { headers: { 'X-Pinggy-No-Screen': 'true' } })
+      .then(res => res.json())
+      .then(data => {
+        if (data.gpu || data.hardware) {
+          setLiveGpu(data.gpu || data.hardware);
+        } else if (data.status === 'live' || data.raw_data) {
+          setLiveGpu('MI300X (Live)');
+        } else {
+          setLiveGpu('Hardware Unavailable');
+        }
+      })
+      .catch(() => setLiveGpu("Hardware Unavailable"));
+  }, []);
+
+  const gpuName = verification?.environment?.gpu ? verification.environment.gpu.trim() : liveGpu;
 
   return (
     <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-2">

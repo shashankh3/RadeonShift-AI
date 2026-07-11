@@ -23,10 +23,26 @@ export default function Header() {
         if (!res.ok) throw new Error('Fetch failed');
         const data = await res.json();
         if (mounted) {
+          let parsedVram = '--';
+          let parsedCompute = '--';
+          let parsedGpu = data.gpu || data.hardware || 'Hardware Unavailable';
+
+          if (data.raw_data) {
+            const vramMatch = data.raw_data.match(/VRAM%\):\s*(\d+)/);
+            if (vramMatch) parsedVram = `${vramMatch[1]}%`;
+            
+            const computeMatch = data.raw_data.match(/GPU use \(%\):\s*(\d+)/);
+            if (computeMatch) parsedCompute = `${computeMatch[1]}%`;
+
+            if (parsedGpu === 'Hardware Unavailable' && data.status === 'live') {
+               parsedGpu = 'MI300X (Live)';
+            }
+          }
+
           setTelemetry({
-            gpu: data.gpu || data.hardware || 'Hardware Unavailable',
-            vram: data.vram || '--',
-            compute: data.compute || '--'
+            gpu: parsedGpu,
+            vram: data.vram || parsedVram,
+            compute: data.compute || parsedCompute
           });
           setIsLive(true);
         }
