@@ -112,8 +112,8 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
     parsedLog = JSON.parse(auditLog);
   } catch (e) {}
   
-  const ptxRisks = parsedLog?.ptx_risks ?? [];
-  const wavefrontOpts = parsedLog?.wavefront_optimizations ?? [];
+  const ptxRisks = Array.isArray(parsedLog?.ptx_risks) ? parsedLog.ptx_risks : [];
+  const wavefrontOpts = Array.isArray(parsedLog?.wavefront_optimizations) ? parsedLog.wavefront_optimizations : [];
   const structuredFindings = [
     ...ptxRisks.filter((f: any) => typeof f === 'object' && f.severity),
     ...wavefrontOpts.filter((f: any) => typeof f === 'object' && f.severity),
@@ -310,8 +310,8 @@ function AuditFindingsSection({ log }: { log: string }) {
     return null;
   }
 
-  const ptxRisks = data?.ptx_risks ?? [];
-  const wavefrontOpts = data?.wavefront_optimizations ?? [];
+  const ptxRisks = Array.isArray(data?.ptx_risks) ? data.ptx_risks : [];
+  const wavefrontOpts = Array.isArray(data?.wavefront_optimizations) ? data.wavefront_optimizations : [];
 
   // Collect all structured findings (objects with severity/finding/fix fields)
   const structuredFindings = [
