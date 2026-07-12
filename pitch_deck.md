@@ -40,7 +40,8 @@ RadeonShift AI is an AI-assisted CUDA kernel migration assistant that translates
 
 - **Source Code Editor:** Paste raw CUDA C++ kernels.
 - **HIP Optimization Core:** View the translated target kernel.
-- **Universal Migration Review:** See the readiness score, live architectural findings, and auto-patch suggestions.
+- **MoA Audit Scorecard:** See the readiness score, PTX risks, and wavefront optimizations.
+- **Universal Migration Review:** View the generated HIP alongside live architectural findings and auto-patch suggestions.
 - **Hardware Telemetry:** Live GPU specs, VRAM usage, and Translation Speed metrics.
 
 ---
