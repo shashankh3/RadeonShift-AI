@@ -25,9 +25,9 @@ We ran two specialized agents in parallel:
 *Optional: switch to GitHub PR view if the workflow is configured.*
 "For CI, RadeonShift includes a GitHub Action. When a repository configures a remote backend URL, PRs touching `.cu` or `.cuh` files can receive a migration audit comment. This is optional and depends on the backend being available."
 
-## 4:30 - The ROI & Business Impact
+## 4:30 - The Illustrative First-Pass ROI
 *Switch back to dashboard. Click 'Expand ROI' on the Cost Calculator.*
-"The business impact is the first-pass audit and translation time saved. Our illustrative ROI model compares hundreds of hours of manual first-pass review with minutes of AI-assisted triage, while still keeping human validation in the loop for production."
+"The illustrative first-pass ROI is the audit and translation time saved. Our illustrative ROI model compares hundreds of hours of manual first-pass review with minutes of AI-assisted triage, while still keeping human validation in the loop for production."
 
 ## 4:50 - Closing
 *Camera on speaker.*

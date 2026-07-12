@@ -8,7 +8,7 @@ This is the canonical operator script for hackathon judging. Follow these exact 
 > "HIPIFY-style tools can translate CUDA syntax to HIP syntax, but they can't tell you whether your code is still semantically correct on AMD hardware."
 
 ## 2. Load the Bug (10 seconds)
-**Action:** Click the "DEMO: WAVEFRONT BUG" button in the Source Ingress panel.
+**Action:** Click the "HERO DEMO: WAVEFRONT-64 BUG" button in the Source Ingress panel.
 **Visual:** Show the CUDA source with `% 32`, `/ 32`, and the reduction loop.
 
 > "Here is a standard CUDA kernel. Notice the hardcoded 32-lane warp assumptions."
