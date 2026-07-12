@@ -39,13 +39,13 @@ export default function BenchmarkPanel() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4 mb-4">
           <div>
             <div className="text-[10px] font-black uppercase tracking-[0.25em] text-amd-red mb-1">
-              Live Hardware Test
+              Hardware Benchmark
             </div>
             <h3 className="text-xl font-black uppercase italic tracking-[-0.04em] text-white">
               MI300X Benchmark Mode
             </h3>
             <p className="text-xs font-medium text-white/50 uppercase tracking-widest mt-1">
-              Run trusted HIP vector-add on AMD hardware
+              Runs on AMD hardware when notebook is online
             </p>
           </div>
           

@@ -277,6 +277,7 @@ export async function runBenchmark(size: number, iterations: number): Promise<Be
     const demoResponse = {
       ...DEMO_BENCHMARK,
       status: "passed" as const,
+      hardware: "AMD Instinct MI300X (gfx942) [Demo — cached evidence]",
       benchmark: {
         name: DEMO_BENCHMARK.kernel,
         size: size,
@@ -284,8 +285,9 @@ export async function runBenchmark(size: number, iterations: number): Promise<Be
         elapsed_ms: DEMO_BENCHMARK.elapsed_ms,
         throughput_gbps: DEMO_BENCHMARK.throughput_gbps,
         bytes_processed: size * 4 * 3 * iterations,
-        gpu_name: DEMO_BENCHMARK.hardware
-      }
+        gpu_name: "AMD Instinct MI300X (gfx942) [Demo — cached evidence]"
+      },
+      disclaimer: "⚠ Cached MI300X benchmark evidence — hardware not connected. Values captured on prior verified run."
     };
     return demoResponse as unknown as BenchmarkResponse;
   }

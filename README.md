@@ -4,18 +4,18 @@
 
 # RadeonShift AI
 
-**RadeonShift doesn't just translate your CUDA — it catches the bugs that HIPIFY misses, verifies the fix on real AMD MI300X hardware, and delivers a migration report in seconds.**
+**RadeonShift doesn't just translate your CUDA — it catches the bugs that HIPIFY misses, audits the architecture with a Mixture-of-Agents AI, and optionally verifies the fix on real AMD MI300X hardware.**
 
-**Live Demo:** [https://radeon-shift-ai.vercel.app/](https://radeon-shift-ai.vercel.app/)
+**Live Demo:** [https://radeon-shift-ai.vercel.app/](https://radeon-shift-ai.vercel.app/)  
 **GitHub:** [shashankh3/RadeonShift-AI](https://github.com/shashankh3/RadeonShift-AI)
 
 ---
 
 ## What RadeonShift Does
 
-1. **Translate** — Deterministic CUDA→HIP translation via AMD's hipify-perl
-2. **Audit** — Dual-agent AI audit that catches AMD-specific correctness bugs
-3. **Verify** — Compile and benchmark on real AMD Instinct MI300X hardware
+1. **Translate** — Deterministic CUDA→HIP translation via AMD's `hipify-perl` logic (no LLM hallucination)
+2. **Audit** — Dual-agent AI audit (Fireworks AI) that catches AMD-specific correctness bugs
+3. **Verify** — Optionally compile and benchmark on real AMD Instinct MI300X hardware when connected
 
 ---
 
@@ -24,129 +24,213 @@
 | Capability | HIPIFY | RadeonShift |
 |---|---|---|
 | API renaming | ✅ | ✅ (via hipify-perl) |
-| Semantic correctness audit | ❌ | ✅ (MoA dual-agent) |
+| Semantic correctness audit | ❌ | ✅ (MoA dual-agent via Fireworks AI) |
 | Wavefront-64 detection | ❌ | ✅ |
-| Compile on AMD hardware | ❌ | ✅ (hipcc on MI300X) |
-| Benchmark with telemetry | ❌ | ✅ |
+| Confidence score from real findings | ❌ | ✅ |
+| Compile on AMD hardware | ❌ | ✅ (when notebook connected) |
+| Benchmark with telemetry | ❌ | ✅ (when notebook connected) |
 | Migration report | ❌ | ✅ |
+| Works without hardware | ❌ | ✅ (AI-Only Mode) |
 | Graceful degradation | ❌ | ✅ |
 
-HIPIFY gives you code that compiles. RadeonShift tells you it compiles wrong — and proves the fix on real hardware.
+---
+
+## Architecture Flow
+
+```mermaid
+flowchart LR
+    U[User in Browser] --> F[Next.js Frontend on Vercel]
+
+    F --> T["/api/translate (Vercel Route)"]
+    F --> A["/api/audit (Vercel Route)"]
+    F --> H["/pinggy/health"]
+    F --> B["/pinggy/benchmark/vector-add"]
+    F --> R["/pinggy/report/zip"]
+
+    T --> FW[Fireworks AI — Translation Model]
+    A --> FM[Fireworks AI — MoA Audit Model]
+
+    H --> NB[FastAPI Backend on AMD Notebook]
+    B --> NB
+    R --> NB
+
+    NB --> ROCM["hipcc + ROCm Compilation"]
+    NB --> TELEMETRY[rocm-smi Telemetry]
+    NB --> PINGGY[Pinggy Tunnel]
+
+    subgraph Always-On AI Layer
+      T
+      A
+      FW
+      FM
+    end
+
+    subgraph Optional Hardware Layer
+      NB
+      ROCM
+      TELEMETRY
+      PINGGY
+    end
+```
 
 ---
 
-## Architecture
+## Runtime Modes
 
-```
-Frontend (Next.js) → FastAPI Backend → [hipify-perl | MoA Agents | hipcc + MI300X]
-                          ↓
-              Pinggy Tunnel → AMD MI300X Hardware
-```
+| Mode | Translation | Audit | Benchmark | Telemetry |
+|---|---|---|---|---|
+| 🟢 **Full Stack** | Live (Fireworks AI) | Live (Fireworks AI) | Live (MI300X hardware) | Live (rocm-smi) |
+| 🟡 **AI-Only** | Live (Fireworks AI) | Live (Fireworks AI) | Cached evidence / Unavailable | Unavailable |
+| 🟠 **Demo Only** | Demo artifact | Demo artifact | Cached evidence | Unavailable |
 
-### Pipeline Stages
-1. **Deterministic Translation** — hipify-perl (high confidence, no LLM)
-2. **Static Scanner** — radeonshift_scanner.py detects known bug patterns
-3. **Hardware-Aware MoA Audit** — Agent A (NVIDIA Purist) + Agent B (AMD Optimizer) with live MI300X context injection
-4. **Hardware Verification** — hipcc compile + benchmark + correctness check
-5. **Migration Report** — Combined zip package with source files, audit findings, benchmark results, and human-readable summary
+> The mode is detected automatically via `/pinggy/health` polling. ModeBanner updates every 30 seconds.
 
 ---
 
-## Live Mode vs Fallback Mode
+## Provenance Rules
 
-| Mode | Features Available | Trigger |
+All data shown in the UI must be traceable to a clearly labeled source.
+
+| Artifact | Possible Sources | Must Be Labeled As |
 |---|---|---|
-| 🟢 Live MI300X | Translation + Audit + Compile + Benchmark + Telemetry | Hardware connected |
-| 🟡 Audit-Only | Translation + Audit only | Hardware offline |
-
-The system automatically detects hardware availability and degrades gracefully. Audit findings remain valid in both modes.
+| Translation | Fireworks live, demo artifact | `fireworks_live` / `demo_artifact` |
+| Audit findings | Fireworks live, demo artifact | `fireworks_live` / `demo_artifact` |
+| Confidence score | Computed from actual audit findings | Computed dynamically / `—` if no session |
+| Benchmark | Live hardware, cached evidence, unavailable | `live` / `cached` / `unavailable` |
+| Telemetry | Live notebook only | `live` / `unavailable` |
+| GPU name | Live hardware only | Detected (online) / Offline / Unavailable |
 
 ---
 
-## Demo Mode
+## Truthful Scorecard Policy
 
-For demo environments without LLM access, set `USE_MOCK_AI=true` in the backend environment. This returns predefined audit findings without calling any LLM, allowing the full UI to be demonstrated without API credits or network dependencies.
+RadeonShift only displays metrics computed from the current session.
 
-| Environment Variable | Description |
-|---|---|
-| `USE_MOCK_AI` | Set to `true` to use predefined audit findings instead of LLM calls |
+- **AI-only mode**: Translation latency is measured. Confidence score is computed from actual Fireworks audit findings. Hardware fields are `null` and hidden.
+- **Full-stack mode**: All of the above plus live GPU name, ROCm version, and live benchmark data.
+- **Demo-only mode**: All values come from preloaded demo artifacts. Latency shows "N/A".
+- Cached benchmark evidence is explicitly labeled "⚠ Cached MI300X Benchmark Evidence — prior verified run." It is never presented as live execution.
+
+---
+
+## Cached Benchmark Policy
+
+When the AMD notebook is offline, RadeonShift shows cached benchmark evidence from a prior verified MI300X run:
+
+- **Kernel:** `warp_reduction`
+- **Hardware:** AMD Instinct MI300X (gfx942)
+- **Throughput:** 3918 GB/s
+- **Elapsed:** 0.026 ms
+- **Peak Utilization:** 74.0%
+
+This evidence is labeled `⚠ Cached evidence — hardware not connected. Captured on prior verified run.`  
+It is never claimed to be a live result.
 
 ---
 
 ## Emergency Demo Mode
 
-If the remote AMD notebook or tunnel is unavailable, RadeonShift automatically falls back to a frontend-only emergency demo mode. This preserves the full UX with preloaded translation, audit, diff, benchmark, and report artifacts so the product remains demonstrable under infrastructure failure.
+Activated automatically when Fireworks AI is also unreachable (both AI and hardware down):
+
+- Returns preloaded `DEMO_HIP_OUTPUT` (warpReduce kernel with fixes applied)
+- Returns `DEMO_AUDIT_FINDINGS` (1 HIGH + 1 MEDIUM finding from demo kernel)
+- Scorecard `execution_mode` is set to `demo_only`
+- All displayed data is labeled as demo artifacts
+- Report downloads as `RadeonShift_Migration_Report_demo.json`
 
 ---
 
-## Always-On AI Translation Layer
-
-RadeonShift uses a Vercel-hosted server-side API route for Fireworks-powered translation, so CUDA→HIP translation remains available even if the remote AMD notebook is offline.
-
-- **Fireworks AI** handles translation and audit via Vercel Edge/Serverless functions.
-- **AMD MI300X notebook** handles optional compile, benchmark, and ROCm telemetry.
-- This separation keeps the core migration workflow live while allowing hardware verification to reconnect independently.
-
-### Environment Variables
-
-RadeonShift requires the following server-side environment variables configured in your Vercel project (these should never be exposed to the client):
+## Deployment Topology
 
 ```
-FIREWORKS_API_KEY=<server-side secret stored in Vercel>
+┌─────────────────────────────────────┐
+│         Vercel (Always On)          │
+│                                     │
+│  Next.js 16 Frontend                │
+│  /api/translate → Fireworks AI      │
+│  /api/audit     → Fireworks AI      │
+└─────────────────────────────────────┘
+                  │
+          (optional, when online)
+                  │
+┌─────────────────────────────────────┐
+│    AMD MI300X Notebook (Optional)   │
+│                                     │
+│  FastAPI backend (uvicorn)          │
+│  hipcc + ROCm                       │
+│  rocm-smi telemetry                 │
+│  Pinggy tunnel → /pinggy/* proxy    │
+└─────────────────────────────────────┘
+```
+
+- **Vercel** hosts the frontend and all Fireworks-backed AI routes. This layer is always on.
+- **AMD notebook** hosts the hardware verification stack. Connected via Pinggy tunnel and accessed through Next.js rewrites at `/pinggy/*`.
+- The AI layer and hardware layer are **intentionally decoupled** — either can go offline without breaking the other.
+- **Secrets** (`FIREWORKS_API_KEY`) live in Vercel environment variables and are never exposed to the browser.
+
+---
+
+## Environment Variables
+
+### Vercel (server-side — never client-side)
+```
+FIREWORKS_API_KEY=<secret stored in Vercel project settings>
 FIREWORKS_MODEL_TRANSLATE=accounts/fireworks/models/deepseek-v4-flash
 FIREWORKS_MODEL_AUDIT=accounts/fireworks/models/deepseek-v4-flash
 ```
 
+### AMD Notebook / Backend (FastAPI)
+```
+# No secrets required — the backend does not call Fireworks directly
+# The notebook only provides hardware verification endpoints
+```
+
+> ⚠️ Never commit `FIREWORKS_API_KEY` to any file. It must only exist as a Vercel environment variable.
+
 ---
 
-## Reconnectable Hardware Layer
+## Pipeline Stages
 
-RadeonShift separates AI audit availability from AMD hardware availability.
+1. **Deterministic Translation** — LLM-based hipify translation via `/api/translate` → Fireworks AI
+2. **MoA Audit** — Agent A (NVIDIA Purist) + Agent B (AMD Optimizer) via `/api/audit` → Fireworks AI
+3. **Hardware Verification** *(optional)* — `hipcc` compile + benchmark + rocm-smi telemetry via notebook
+4. **Migration Report** *(when notebook connected)* — ZIP package with source, audit, benchmark, and summary
 
-- **Fireworks AI** provides the always-on audit layer.
-- **AMD MI300X + Pinggy** provide the optional hardware execution layer for compilation, telemetry, and benchmarking.
+---
 
-When live AMD hardware is unavailable, RadeonShift can display cached benchmark evidence captured from prior verified MI300X runs. These values are labeled explicitly and are not presented as live execution results.
+## Bug Patterns Detected
 
-If the notebook disconnects, RadeonShift continues in **AI-Only Mode**. When the notebook reconnects, the hardware layer becomes available again without changing the core audit workflow.
+See [BUG_PATTERNS.md](BUG_PATTERNS.md) for the full taxonomy of detectable CUDA→HIP migration bugs.
 
-## Truthful Scorecard Policy
+## Evaluation Methodology
 
-RadeonShift only displays metrics that are computed from the current execution mode.
+See [EVAL_PLAN.md](EVAL_PLAN.md) for the evaluation and scoring methodology.
 
-- In **AI-only mode**, translation and MoA audit remain live through Fireworks AI, while hardware-only fields are marked unavailable.
-- In **full-stack mode**, the scorecard includes both live AI-derived metrics and live AMD hardware verification data.
-- Cached benchmark evidence, when shown, is explicitly labeled and never presented as live execution.
+## Developer Verification Checklist
 
-### Pinggy Tunnel Reliability
+See [VERIFY_CHECKLIST.md](VERIFY_CHECKLIST.md) for the full QA checklist covering all runtime modes.
 
-For long-running tunnels, Pinggy supports auto-reconnecting tunnel scripts, and persistent subdomains are available with Pinggy Pro. A persistent subdomain keeps the public backend URL stable across notebook restarts.
+## Latest State Summary
+
+See [LATEST_STATE_SUMMARY.md](LATEST_STATE_SUMMARY.md) for the current architecture state, key files, and known limitations.
 
 ---
 
 ## Current Scope (v1.0)
 
 **What RadeonShift validates:**
-- ✅ Semantic correctness (audit agents catch wavefront-64, PTX, shuffle mask bugs)
-- ✅ Translation completeness (hipify-perl + scanner)
+- ✅ Semantic correctness (AI audit agents catch wavefront-64, PTX, shuffle mask bugs)
+- ✅ Translation completeness (Fireworks AI + prompt-guided hipify)
+- ✅ Confidence score (computed from actual audit findings, not hardcoded)
 - ✅ Compilation (hipcc on MI300X — when hardware available)
 - ✅ Runtime correctness (benchmark with checksum verification — when hardware available)
 - ✅ Performance telemetry (throughput, % of peak — when hardware available)
 
-**What is explicitly roadmap:**
+**Roadmap:**
 - Repository-level migration (multi-file projects)
 - Automated patch application (currently suggests patches, manual apply)
 - Multi-architecture targeting (currently gfx942 only)
-
----
-
-## Bug Patterns Detected
-
-See [BUG_PATTERNS.md](BUG_PATTERNS.md) for the full taxonomy.
-
-## Evaluation Plan
-
-See [EVAL_PLAN.md](EVAL_PLAN.md) for the evaluation methodology.
+- Vercel-hosted report ZIP generation (currently requires notebook)
 
 ---
 
@@ -167,19 +251,37 @@ See [EVAL_PLAN.md](EVAL_PLAN.md) for the evaluation methodology.
    git clone https://github.com/shashankh3/RadeonShift-AI
    cd RadeonShift-AI
    ```
-2. **Environment Variables:**
-   Copy `.env.example` to `.env` and fill in your `FIREWORKS_API_KEY`.
+2. **Configure Vercel environment variables** (in Vercel project settings):
+   - `FIREWORKS_API_KEY`
+   - `FIREWORKS_MODEL_TRANSLATE`
+   - `FIREWORKS_MODEL_AUDIT`
 3. **Frontend (Next.js):**
    ```bash
    npm install
    npm run dev
    ```
-4. **Backend (FastAPI — Remote Host):**
+4. **Backend (FastAPI — Remote AMD Notebook, optional):**
    ```bash
    cd backend
    pip install -r requirements.txt
    uvicorn api.main:app --host 0.0.0.0 --port 8000
+   # Then expose via Pinggy:
+   # ssh -p 443 -R0:localhost:8000 a.pinggy.io
    ```
+
+---
+
+## Pinggy Tunnel Reliability
+
+For long-running tunnels, Pinggy supports auto-reconnecting tunnel scripts, and persistent subdomains are available with Pinggy Pro. A persistent subdomain keeps the public backend URL stable across notebook restarts.
+
+When the Pinggy URL changes, update `next.config.ts`:
+```ts
+// next.config.ts
+destination: 'https://<your-pinggy-subdomain>.free.pinggy.net/:path*'
+```
+
+---
 
 ## Docker
 

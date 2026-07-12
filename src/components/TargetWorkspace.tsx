@@ -124,8 +124,8 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
 
           <div className="hidden grid-cols-3 gap-2 text-center opacity-30 sm:grid 2xl:min-w-[390px]">
             <MiniStat label="Wave" value={verification?.static_analysis?.warp32_assumptions > 0 ? "32" : "64"} />
-            <MiniStat label="GPU" value={verification?.environment?.gpu ? "Detected" : "Verified"} />
-            <MiniStat label="Status" value={verification ? "Verified" : "Active"} />
+            <MiniStat label="GPU" value={scorecard?.hardware?.status === 'online' ? "Detected" : "Unavailable"} />
+            <MiniStat label="Status" value={scorecard?.execution_mode === 'full_stack' ? "Full Stack" : scorecard?.execution_mode === 'ai_only' ? "AI Only" : "Demo"} />
           </div>
         </div>
 
@@ -421,7 +421,8 @@ function TelemetryPanel({ verification, log, scorecard }: { verification?: any, 
     ? (scorecard.translation.latency_ms / 1000).toFixed(3) 
     : (scorecard?.execution_mode === 'demo_only' ? "N/A" : "...");
     
-  const confScore = scorecard?.audit?.confidence_score ?? 100;
+  const confScore = scorecard?.audit?.confidence_score ?? null;
+  const confDisplay = confScore !== null ? `${confScore}` : '—';
 
   return (
     <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-2">
@@ -429,12 +430,12 @@ function TelemetryPanel({ verification, log, scorecard }: { verification?: any, 
         <div className="relative z-10 mb-6 flex items-end justify-between gap-4">
           <div>
             <h3 className="mb-2 text-sm font-black uppercase tracking-[0.28em] text-white/42">Audit Confidence Score</h3>
-            <div className="text-6xl font-black tracking-[-0.08em] text-white">{confScore}<span className="text-3xl text-white">%</span></div>
+            <div className="text-6xl font-black tracking-[-0.08em] text-white">{confDisplay}{confScore !== null && <span className="text-3xl text-white">%</span>}</div>
           </div>
           <CheckCircle2 className="mb-2 h-10 w-10 text-white drop-shadow-[0_0_14px_rgba(255,255,255,0.8)]" />
         </div>
         <div className="relative z-10 h-4 overflow-hidden border border-white/10 bg-black/45">
-          <div className="relative h-full bg-gradient-to-r from-white via-white to-radeon-orange shadow-[0_0_22px_rgba(255,255,255,0.85)]" style={{ width: `${confScore}%` }}>
+          <div className="relative h-full bg-gradient-to-r from-white via-white to-radeon-orange shadow-[0_0_22px_rgba(255,255,255,0.85)]" style={{ width: `${confScore ?? 0}%` }}>
             <div className="absolute inset-0 animate-[slide_1s_linear_infinite] bg-[linear-gradient(45deg,rgba(0,0,0,0.22)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.22)_50%,rgba(0,0,0,0.22)_75%,transparent_75%,transparent)] bg-[length:22px_22px]" />
           </div>
         </div>
