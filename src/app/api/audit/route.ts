@@ -85,12 +85,18 @@ Absolutely NO conversational preamble and NO markdown formatting. Return only th
     let content = data.choices[0]?.message?.content || '{}';
     
     // Clean up potential markdown formatting that the LLM might have leaked
-    content = content.replace(/^```(json)?\n/, '').replace(/```\n?$/, '');
+    // Extract everything between the first { and last }
+    const startIndex = content.indexOf('{');
+    const endIndex = content.lastIndexOf('}');
+    if (startIndex !== -1 && endIndex !== -1 && endIndex >= startIndex) {
+      content = content.substring(startIndex, endIndex + 1);
+    }
     
     let findings;
     try {
       findings = JSON.parse(content);
     } catch (e) {
+      console.error("Failed to parse AI response:", content, e);
       findings = {
         readiness_score: 0,
         ptx_risks: ["Failed to parse AI response"],
