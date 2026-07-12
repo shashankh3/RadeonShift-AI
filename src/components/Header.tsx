@@ -30,9 +30,9 @@ export default function Header() {
           let parsedCompute = data.compute || '--';
 
           if (data.status === 'live' || data.status === 'operational' || data.raw_data) {
-             if (parsedGpu === 'Hardware Unavailable') parsedGpu = 'MI300X (Live)';
-             if (parsedVram === '--') parsedVram = '0%';
-             if (parsedCompute === '--') parsedCompute = '0%';
+            if (parsedGpu === 'Hardware Unavailable') parsedGpu = 'Hardware Connected';
+            if (parsedVram === '--') parsedVram = '0%';
+            if (parsedCompute === '--') parsedCompute = '0%';
           }
 
           setTelemetry({
@@ -53,7 +53,7 @@ export default function Header() {
         }
       }
     };
-    
+
     fetchTelemetry();
     const interval = setInterval(fetchTelemetry, 3000);
     return () => {

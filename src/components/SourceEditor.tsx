@@ -92,7 +92,7 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
   const [files, setFiles] = useState(DEFAULT_FILES);
   const [selectedDemoId, setSelectedDemoId] = useState<string | null>('VectorAdd');
   const lineNumbersRef = useRef<HTMLDivElement>(null);
-  
+
   const currentCode = files[activeFile];
   const lineCount = currentCode.split('\n').length;
 
@@ -134,16 +134,16 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
                     : 'border-transparent bg-transparent text-white/35 hover:bg-white/[0.04] hover:text-white/70'
                   }`}
               >
-                <div 
+                <div
                   className={`absolute inset-x-0 top-0 h-[2px] origin-left bg-amd-red shadow-[0_0_14px_rgba(237,28,36,0.9)] transition-all duration-500 ease-out
-                    ${isActive ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'}`} 
+                    ${isActive ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'}`}
                 />
-                
+
                 <div className={`flex items-center overflow-hidden transition-all duration-500 ease-out
                   ${isActive ? 'w-4 opacity-100' : 'w-0 opacity-0'}`}>
                   <FileCode2 className="h-4 w-4 shrink-0 text-amd-red" />
                 </div>
-                
+
                 <span>{file}</span>
               </button>
             );
@@ -167,7 +167,7 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
           { id: 'SGEMM', label: 'Demo: SGEMM' },
           { id: 'VectorAdd', label: 'Demo: Vector Add' },
           { id: 'Softmax', label: 'Demo: Softmax' },
-          { id: 'WavefrontBug', label: 'Demo: Wavefront Bug' }
+          { id: 'WavefrontBug', label: 'Hero Demo: Wavefront-64 Bug' }
         ] as const).map(({ id, label }) => {
           const isActive = selectedDemoId === id;
           return (
@@ -177,11 +177,10 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
                 setFiles(DEMO_SNIPPETS[id]);
                 setSelectedDemoId(id);
               }}
-              className={`rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${
-                isActive 
-                  ? 'border border-amd-red/50 bg-amd-red/10 text-white shadow-[0_0_15px_rgba(237,28,36,0.6)] hover:bg-amd-red/20' 
+              className={`rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${isActive
+                  ? 'border border-amd-red/50 bg-amd-red/10 text-white shadow-[0_0_15px_rgba(237,28,36,0.6)] hover:bg-amd-red/20'
                   : 'border border-white/20 bg-white/[0.02] text-white/60 hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)]'
-              }`}
+                }`}
             >
               {label}
             </button>

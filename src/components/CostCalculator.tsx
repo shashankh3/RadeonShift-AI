@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 export default function CostCalculator() {
   const [kernelCount, setKernelCount] = useState(244);
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const manualCost = kernelCount * 4 * 150;
   const radeonshiftCost = kernelCount * 0.12;
   const roi = manualCost > 0 ? Math.round(manualCost / radeonshiftCost) : 0;
@@ -16,7 +16,7 @@ export default function CostCalculator() {
         className="w-full flex items-center justify-between px-6 py-4 hover:bg-white/[0.03] transition-colors group"
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-left">
-          <span className="text-[10px] font-black uppercase tracking-[0.28em] text-white border-r border-white/10 pr-6">Business Impact</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.28em] text-white border-r border-white/10 pr-6">Illustrative First-Pass ROI</span>
           <div className="flex items-center gap-4 text-xs font-black uppercase tracking-wider">
             <span className="text-emerald-400 px-3 py-1 bg-emerald-400/10 border border-emerald-400/20">{roi.toLocaleString('en-US')}x ROI</span>
             <span className="text-red-400/90">Manual: ${manualCost.toLocaleString('en-US')}</span>
@@ -46,7 +46,7 @@ export default function CostCalculator() {
               className="w-full h-1.5 bg-black/50 appearance-none cursor-pointer accent-amd-red border border-white/10"
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 text-sm mb-4">
             <div className="bg-black/40 border border-white/10 p-4 amd-chip-cut">
               <div className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40 mb-2">Manual Migration</div>
@@ -59,9 +59,9 @@ export default function CostCalculator() {
               <div className="text-[10px] font-black uppercase tracking-[0.15em] text-white/30">~{Math.ceil(kernelCount * 0.08)} min compute</div>
             </div>
           </div>
-          
+
           <div className="text-white/30 text-[9px] mt-6 text-center font-black uppercase tracking-[0.28em]">
-            Based on 4 engineer-hours per kernel vs automated pipeline cost
+            Illustrative triage estimate; production migration still requires human validation
           </div>
         </div>
       )}

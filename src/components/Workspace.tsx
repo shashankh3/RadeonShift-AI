@@ -10,6 +10,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 export default function Workspace() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [hasTranslated, setHasTranslated] = useState(false);
+  const [cudaSource, setCudaSource] = useState('');
   const [rocmCode, setRocmCode] = useState('');
   const [auditLog, setAuditLog] = useState('');
   const [verification, setVerification] = useState<any>(null);
@@ -17,6 +18,7 @@ export default function Workspace() {
 
   const handleMigrate = async (cudaCode: string) => {
     setIsTranslating(true);
+    setCudaSource(cudaCode);
 
     try {
       const response = await translateCode(cudaCode);
@@ -48,17 +50,18 @@ export default function Workspace() {
 
       <section className="relative z-10 min-h-0 overflow-hidden flex flex-col">
         <div className="flex-1 min-h-0">
-            <ErrorBoundary fallbackLabel="Translation Output Error">
-              <TargetWorkspace
-                isTranslating={isTranslating}
-                hasTranslated={hasTranslated}
-                rocmCode={rocmCode}
-                auditLog={auditLog}
-                verification={verification}
-                scorecard={scorecard}
-              />
-            </ErrorBoundary>
-          </div>
+          <ErrorBoundary fallbackLabel="Translation Output Error">
+            <TargetWorkspace
+              isTranslating={isTranslating}
+              hasTranslated={hasTranslated}
+              rocmCode={rocmCode}
+              auditLog={auditLog}
+              verification={verification}
+              scorecard={scorecard}
+              cudaSource={cudaSource}
+            />
+          </ErrorBoundary>
+        </div>
         <div className="shrink-0 border-t border-white/10 bg-[#040407] p-4">
           <CostCalculator />
         </div>

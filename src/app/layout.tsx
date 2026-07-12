@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "RadeonShift AI | CUDA to ROCm Migration",
   description:
-    "A futuristic AMD-inspired workspace for translating CUDA kernels into optimized ROCm HIP code.",
+    "CUDA-to-HIP migration assistant that audits AMD MI300X portability risks, wavefront-64 bugs, and live/cached hardware evidence provenance.",
 };
 
 export default function RootLayout({
