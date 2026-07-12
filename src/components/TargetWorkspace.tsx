@@ -394,7 +394,7 @@ function AnalyticsPanel({ log }: { log: string }) {
               </div>
               {ptxRisks.length > 0 ? (
                 <ul className="list-disc list-inside space-y-2 text-sm text-red-400/90 font-medium">
-                  {ptxRisks.map((risk: string, i: number) => <li key={i}>{risk}</li>)}
+                  {ptxRisks.map((risk: any, i: number) => <li key={i}>{typeof risk === 'string' ? risk : risk.finding}</li>)}
                 </ul>
               ) : (
                 <div className="flex items-center gap-2 text-sm text-emerald-400/90 font-medium">
@@ -410,7 +410,7 @@ function AnalyticsPanel({ log }: { log: string }) {
               </div>
               {optimizations.length > 0 ? (
                 <ul className="list-disc list-inside space-y-2 text-sm text-cyan-100/80">
-                  {optimizations.map((opt: string, i: number) => <li key={i}>{opt}</li>)}
+                  {optimizations.map((opt: any, i: number) => <li key={i}>{typeof opt === 'string' ? opt : opt.finding}</li>)}
                 </ul>
               ) : (
                 <p className="text-sm text-white/55">No specific wavefront optimizations suggested.</p>
