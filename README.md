@@ -79,6 +79,21 @@ If the remote AMD notebook or tunnel is unavailable, RadeonShift automatically f
 
 ---
 
+## Reconnectable Hardware Layer
+
+RadeonShift separates AI audit availability from AMD hardware availability.
+
+- **Fireworks AI** provides the always-on audit layer.
+- **AMD MI300X + Pinggy** provide the optional hardware execution layer for compilation, telemetry, and benchmarking.
+
+If the notebook disconnects, RadeonShift continues in **AI-Only Mode**. When the notebook reconnects, the hardware layer becomes available again without changing the core audit workflow.
+
+### Pinggy Tunnel Reliability
+
+For long-running tunnels, Pinggy supports auto-reconnecting tunnel scripts, and persistent subdomains are available with Pinggy Pro. A persistent subdomain keeps the public backend URL stable across notebook restarts.
+
+---
+
 ## Current Scope (v1.0)
 
 **What RadeonShift validates:**

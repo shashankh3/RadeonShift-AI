@@ -13,7 +13,7 @@ import io
 from datetime import datetime
 from models.schemas import CodeRequest, BenchmarkRequest
 from services.verification import build_verification_result
-from services.ai_orchestrator import call_agent_a, call_agent_b, get_hardware_context
+from services.ai_orchestrator import call_agent_a, call_agent_b, get_hardware_context, get_primary_llm_provider
 from services.static_scanner import perform_static_portability_scan
 from core.config import FIREWORKS_API_KEY
 
@@ -23,23 +23,33 @@ MI300X_PEAK_BANDWIDTH_GBPS = 5300
 
 @router.get("/health")
 async def health():
+    ai_provider = get_primary_llm_provider()
+    hw_status = "offline"
+    hw_info = "Unavailable"
+    
     try:
         process = subprocess.run(["rocm-smi", "--showproductname", "--showmeminfo", "vram", "--showuse", "gpu"],
                               capture_output=True, text=True, timeout=5)
         if process.returncode == 0:
-            return {
-                "status": "operational",
-                "hardware": process.stdout,
-                "source": "live_rocm_smi"
-            }
-        else:
-            raise Exception("rocm-smi failed")
+            hw_status = "online"
+            hw_info = "AMD Instinct MI300X (gfx942)"
     except Exception:
-        return {
-            "status": "degraded",
-            "hardware": "Unavailable (Hardware Check Failed)",
-            "source": "psutil_fallback"
-        }
+        pass
+        
+    mode = "demo_only"
+    if ai_provider["status"] == "online":
+        mode = "full_stack" if hw_status == "online" else "ai_only"
+        
+    return {
+        "mode": mode,
+        "ai": ai_provider,
+        "hardware": {
+            "status": hw_status,
+            "hardware": hw_info,
+            "rocm_available": hw_status == "online"
+        },
+        "timestamp": datetime.now().isoformat()
+    }
 
 @router.get("/verification-capabilities")
 async def verification_capabilities():
@@ -550,7 +560,16 @@ async def generate_report(request: CodeRequest):
             s = f.get("severity", "LOW")
             severity_counts[s] = severity_counts.get(s, 0) + 1
 
+    ai_provider = get_primary_llm_provider()
+    execution_mode = "full_stack" if (hardware_available and shutil.which("hipcc")) else "ai_only"
+
     return {
+        "execution_mode": execution_mode,
+        "llm": {
+            "provider": ai_provider["provider"],
+            "provider_display": ai_provider["provider_display"],
+            "model": ai_provider["model"]
+        },
         "translation": {
             "status": "complete",
             "input_language": "CUDA",

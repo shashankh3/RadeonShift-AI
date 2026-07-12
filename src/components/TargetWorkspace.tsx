@@ -194,6 +194,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
                 <AnalyticsPanel log={auditLog} />
                 <AuditFindingsSection log={auditLog} />
                 <VerificationGate verification={verification} />
+                <BackendStatusPanel />
                 <BenchmarkPanel />
               </>
             )}
@@ -565,6 +566,62 @@ function EnvRow({ icon, label, value }: { icon: React.ReactNode; label: string; 
       <span className="text-white/45">{icon}</span>
       <span>{label}:</span>
       <span className="ml-auto text-white">{value}</span>
+    </div>
+  );
+}
+
+function BackendStatusPanel() {
+  const [healthData, setHealthData] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchHealth = async () => {
+      try {
+        const res = await fetch('/pinggy/health', {
+          headers: { 'X-Pinggy-No-Screen': 'true' }
+        });
+        if (res.ok) {
+          setHealthData(await res.json());
+        } else {
+          setHealthData({ mode: 'demo_only', ai: { status: 'offline', provider_display: 'N/A' }, hardware: { status: 'offline' } });
+        }
+      } catch {
+        setHealthData({ mode: 'demo_only', ai: { status: 'offline', provider_display: 'N/A' }, hardware: { status: 'offline' } });
+      }
+    };
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!healthData) return null;
+
+  return (
+    <div className="mt-5 mb-5 p-4 bg-black/40 border border-white/10 rounded-sm">
+      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 mb-3 border-b border-white/10 pb-2">
+        Backend Infrastructure Status
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <div>
+          <div className="text-white/40 mb-1">Execution Mode</div>
+          <div className="font-medium text-white">{healthData.mode}</div>
+        </div>
+        <div>
+          <div className="text-white/40 mb-1">AI Provider</div>
+          <div className="font-medium text-white">{healthData.ai?.provider_display || 'N/A'}</div>
+        </div>
+        <div>
+          <div className="text-white/40 mb-1">AI Status</div>
+          <div className={`font-medium ${healthData.ai?.status === 'online' ? 'text-green-400' : 'text-orange-400'}`}>
+            {healthData.ai?.status?.toUpperCase() || 'OFFLINE'}
+          </div>
+        </div>
+        <div>
+          <div className="text-white/40 mb-1">Hardware Status</div>
+          <div className={`font-medium ${healthData.hardware?.status === 'online' ? 'text-green-400' : 'text-yellow-400'}`}>
+            {healthData.hardware?.status?.toUpperCase() || 'OFFLINE'}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

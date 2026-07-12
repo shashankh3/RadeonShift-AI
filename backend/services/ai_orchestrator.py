@@ -6,6 +6,16 @@ from core.config import FIREWORKS_API_KEY
 
 USE_MOCK_AI = os.environ.get("USE_MOCK_AI", "false").lower() == "true"
 
+def get_primary_llm_provider():
+    return {
+        "provider": "fireworks_cloud",
+        "provider_display": "Fireworks AI (Cloud)",
+        "base_url": "https://api.fireworks.ai/inference/v1",
+        "api_key": os.environ.get("FIREWORKS_API_KEY", ""),
+        "model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/deepseek-v4-flash"),
+        "status": "online" if os.environ.get("FIREWORKS_API_KEY") else "offline"
+    }
+
 
 def get_mock_audit_findings():
     """Return predefined audit findings for demo mode (USE_MOCK_AI=true)."""
@@ -104,8 +114,9 @@ Scanner findings:
 [INSTRUCTIONS]
 Scan the CUDA source above for NVIDIA-specific lock-in. Return a JSON array of findings per the schema in your system prompt."""
 
+    provider = get_primary_llm_provider()
     payload = {
-        "model": "accounts/fireworks/models/deepseek-v4-flash",
+        "model": provider["model"],
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message}
@@ -115,12 +126,12 @@ Scan the CUDA source above for NVIDIA-specific lock-in. Return a JSON array of f
         "response_format": {"type": "json_object"}
     }
     headers = {
-        "Authorization": f"Bearer {FIREWORKS_API_KEY}",
+        "Authorization": f"Bearer {provider['api_key']}",
         "Content-Type": "application/json"
     }
     async with httpx.AsyncClient() as client:
         try:
-            res = await client.post("https://api.fireworks.ai/inference/v1/chat/completions", headers=headers, json=payload, timeout=30.0)
+            res = await client.post(f"{provider['base_url']}/chat/completions", headers=headers, json=payload, timeout=30.0)
             if res.status_code == 200:
                 raw = json.loads(res.json()["choices"][0]["message"]["content"])
                 # The model may return {"findings": [...]} or a bare array
@@ -188,8 +199,9 @@ Scanner findings:
 [INSTRUCTIONS]
 Suggest MI300X-specific optimizations. Return a JSON array of findings per the schema in your system prompt."""
 
+    provider = get_primary_llm_provider()
     payload = {
-        "model": "accounts/fireworks/models/deepseek-v4-flash",
+        "model": provider["model"],
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message}
@@ -199,12 +211,12 @@ Suggest MI300X-specific optimizations. Return a JSON array of findings per the s
         "response_format": {"type": "json_object"}
     }
     headers = {
-        "Authorization": f"Bearer {FIREWORKS_API_KEY}",
+        "Authorization": f"Bearer {provider['api_key']}",
         "Content-Type": "application/json"
     }
     async with httpx.AsyncClient() as client:
         try:
-            res = await client.post("https://api.fireworks.ai/inference/v1/chat/completions", headers=headers, json=payload, timeout=30.0)
+            res = await client.post(f"{provider['base_url']}/chat/completions", headers=headers, json=payload, timeout=30.0)
             if res.status_code == 200:
                 raw = json.loads(res.json()["choices"][0]["message"]["content"])
                 if isinstance(raw, list):
