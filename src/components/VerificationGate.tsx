@@ -15,27 +15,48 @@ export default function VerificationGate({ verification }: VerificationGateProps
 
   const status = verification.status;
   
-  let Title = "STATIC ANALYSIS COMPLETE";
-  let Subtext = "Compiler unavailable; portability findings remain available";
+  let Title = "VERIFICATION STATUS UNKNOWN";
+  let Subtext = "Status could not be determined";
   let Icon = ShieldAlert;
   let colorClass = "text-gray-400";
   let borderClass = "border-gray-500/30";
   let bgClass = "bg-gray-500/10";
 
   if (status === "compile_verified") {
-    Title = "MI300X BENCHMARK MODE";
-    Subtext = "HIP source compiled through hipcc";
+    Title = "COMPILE VERIFIED";
+    Subtext = "HIP source compiled through backend toolchain";
     Icon = ShieldCheck;
     colorClass = "text-emerald-400";
     borderClass = "border-emerald-500/30";
     bgClass = "bg-emerald-500/10";
-  } else if (status === "verified_with_warnings") {
-    Title = "VERIFIED WITH REVIEW";
-    Subtext = "Translation completed; manual portability review required";
-    Icon = AlertTriangle;
+  } else if (status === "ai_audited_not_compiled") {
+    Title = "AI AUDIT COMPLETE";
+    Subtext = "Translation and audit completed; compile check not run in this mode";
+    Icon = ShieldCheck;
     colorClass = "text-amber-400";
     borderClass = "border-amber-400/30";
     bgClass = "bg-amber-400/10";
+  } else if (status === "demo_artifact_not_compiled") {
+    Title = "DEMO ARTIFACT";
+    Subtext = "Showing offline demo artifacts; compile check not run";
+    Icon = AlertTriangle;
+    colorClass = "text-gray-400";
+    borderClass = "border-gray-500/30";
+    bgClass = "bg-gray-500/10";
+  } else if (status === "hardware_unavailable") {
+    Title = "HARDWARE OFFLINE";
+    Subtext = "AI translation and audit available; compile and benchmark unavailable";
+    Icon = XCircle;
+    colorClass = "text-red-400";
+    borderClass = "border-red-400/30";
+    bgClass = "bg-red-400/10";
+  } else if (status === "cached_prior_evidence") {
+    Title = "CACHED HARDWARE EVIDENCE";
+    Subtext = "Showing benchmark evidence from a prior verified MI300X session";
+    Icon = ShieldCheck;
+    colorClass = "text-blue-400";
+    borderClass = "border-blue-400/30";
+    bgClass = "bg-blue-400/10";
   } else if (status === "compile_blocked") {
     Title = "COMPILATION BLOCKED";
     Subtext = "HIP compile check reported an error";

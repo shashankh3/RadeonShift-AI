@@ -150,7 +150,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       rocm_code: hipCode,
       audit_log: JSON.stringify(auditLog),
       verification: {
-        status: "compile_verified",
+        status: "ai_audited_not_compiled",
         evidence_id: transData.result_source,
         demo_mode: false
       },
@@ -217,7 +217,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
         demo_mode: true
       }),
       verification: {
-        status: "compile_verified",
+        status: "demo_artifact_not_compiled",
         evidence_id: "demo_fallback",
         demo_mode: true
       },
