@@ -110,8 +110,8 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
   let parsedLog: any = null;
   try {
     parsedLog = JSON.parse(auditLog);
-  } catch (e) {}
-  
+  } catch (e) { }
+
   const ptxRisks = Array.isArray(parsedLog?.ptx_risks) ? parsedLog.ptx_risks : [];
   const wavefrontOpts = Array.isArray(parsedLog?.wavefront_optimizations) ? parsedLog.wavefront_optimizations : [];
   const structuredFindings = [
@@ -185,8 +185,8 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
                   {isFuture && <span className="text-gray-600">○</span>}
                   <span className={
                     isCompleted ? 'text-gray-500 line-through' :
-                    isCurrent ? 'text-white font-medium' :
-                    'text-gray-600'
+                      isCurrent ? 'text-white font-medium' :
+                        'text-gray-600'
                   }>{stage}</span>
                 </div>
               );
@@ -204,7 +204,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
               <div className="flex flex-col gap-6">
                 <CodePanel code={rocmCode} />
                 <CodeDiff before={rocmCode} after={rocmCode} />
-                {isWavefrontBug && <ComparisonPanel findings={structuredFindings} />}
+                <ComparisonPanel findings={structuredFindings} generatedHipCode={rocmCode} isWavefrontBug={isWavefrontBug} />
               </div>
             )}
             {activeTab === 'analytics' && (
@@ -367,7 +367,7 @@ function AnalyticsPanel({ log }: { log: string }) {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
       <SectionTitle kicker="Compiler Intelligence" title="MoA Audit Scorecard" />
-      
+
       <div className={`amd-surface p-6 border transition-all ${scoreBorder}`}>
         <div className="relative z-10">
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-8 border-b border-white/10 pb-6">
@@ -379,15 +379,15 @@ function AnalyticsPanel({ log }: { log: string }) {
             </div>
             <div className="flex-1 mt-4 sm:mt-0">
               <p className="text-[15px] font-medium leading-7 text-white/90 border-l border-white/20 pl-6">
-                {score >= 80 
-                  ? "Code is highly portable. Ready for AMD hardware deployment." 
+                {score >= 80
+                  ? "Code is highly portable. Ready for AMD hardware deployment."
                   : score >= 50
                     ? "Manual optimizations or syntax revisions suggested before deployment."
                     : "Manual redesign required. Direct HIP translation is not sufficient."}
               </p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-black/30 border border-amd-red/30 hover:border-amd-red/50 transition-colors p-5 rounded-sm min-h-[200px]">
               <div className="border-b border-amd-red/20 pb-3 mb-4">
@@ -404,7 +404,7 @@ function AnalyticsPanel({ log }: { log: string }) {
                 </div>
               )}
             </div>
-            
+
             <div className="bg-black/30 border border-cyan-500/30 hover:border-cyan-500/50 transition-colors p-5 rounded-sm min-h-[200px]">
               <div className="border-b border-cyan-500/20 pb-3 mb-4">
                 <h4 className="text-[11px] font-black uppercase tracking-wide text-white">Agent B: AMD Optimizer</h4>
@@ -419,7 +419,7 @@ function AnalyticsPanel({ log }: { log: string }) {
               )}
             </div>
           </div>
-          
+
           {data.manual_intervention_required && (
             <div className="mt-6 bg-red-500/10 border border-red-500/30 p-4 text-sm text-red-400 font-medium flex items-center gap-3">
               <AlertTriangle className="h-5 w-5 shrink-0" />
@@ -434,15 +434,15 @@ function AnalyticsPanel({ log }: { log: string }) {
 
 function TelemetryPanel({ verification, log, scorecard }: { verification?: any, log?: string, scorecard?: any }) {
   const isHwOnline = scorecard?.hardware?.status === 'online';
-  
+
   const gpuName = isHwOnline ? (scorecard.hardware.gpu || 'MI300X') : 'Offline';
   const rocmVer = isHwOnline ? (scorecard.hardware.rocm_version || '6.1') : 'Unavailable';
   const provider = scorecard?.translation?.provider || 'Fireworks AI';
-  
-  const latency = scorecard?.translation?.latency_ms 
-    ? (scorecard.translation.latency_ms / 1000).toFixed(3) 
+
+  const latency = scorecard?.translation?.latency_ms
+    ? (scorecard.translation.latency_ms / 1000).toFixed(3)
     : (scorecard?.execution_mode === 'demo_only' ? "N/A" : "...");
-    
+
   const confScore = scorecard?.audit?.confidence_score ?? null;
   const confDisplay = confScore !== null ? `${confScore}` : '—';
 
@@ -490,8 +490,8 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
     <button
       onClick={onClick}
       className={`amd-chip-cut relative flex shrink-0 items-center gap-3 border-x border-t px-5 py-3 text-xs font-black uppercase tracking-[0.18em] transition-all duration-300 ${active
-          ? 'border-amd-red bg-amd-red/20 text-white shadow-[0_-10px_40px_rgba(237,28,36,0.25)]'
-          : 'border-white/10 bg-white/[0.035] text-white/38 hover:border-white/30 hover:bg-white/[0.08] hover:text-white/80'
+        ? 'border-amd-red bg-amd-red/20 text-white shadow-[0_-10px_40px_rgba(237,28,36,0.25)]'
+        : 'border-white/10 bg-white/[0.035] text-white/38 hover:border-white/30 hover:bg-white/[0.08] hover:text-white/80'
         }`}
     >
       {active && <span className="absolute inset-x-0 top-0 h-[2px] bg-amd-red shadow-[0_0_14px_rgba(237,28,36,0.95)]" />}
