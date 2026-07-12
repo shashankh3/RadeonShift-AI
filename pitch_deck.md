@@ -95,7 +95,7 @@ Finally, the translated HIP code is natively compiled and executed on the MI300X
 - **Hardware Target:** Optimized for AMD Instinct MI300X
 - **Software Stack:** Built on ROCm 6.x APIs and `hipcc`
 - **AI Acceleration:** MoA pipeline runs on Fireworks AI, which provides AMD Instinct GPU-powered inference
-- **Honest Fallbacks:** If the backend lacks ROCm hardware, the platform reports "Hardware Unavailable" without fabricating metrics
+- **Honest Fallbacks:** If the backend lacks ROCm hardware, the platform gracefully enters AI-Only mode, explicitly labeling any cached evidence without fabricating live metrics
 
 ---
 
