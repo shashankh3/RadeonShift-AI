@@ -26,10 +26,28 @@ __global__ void warpReduce(int* input, int* output, int n) {
 
 int main() {
     int n = 1024;
-    int* d_input;
-    int* d_output;
-    hipMalloc(&d_input, n * sizeof(int));
-    hipMalloc(&d_output, (n / warpSize) * sizeof(int));
+
+    // Launcher hardening — defensive checks
+    if (n <= 0) {
+        printf("{\"error\": \"Invalid size: n must be positive\"}\n");
+        return 1;
+    }
+
+    int* d_input = nullptr;
+    int* d_output = nullptr;
+
+    hipError_t err = hipMalloc(&d_input, n * sizeof(int));
+    if (err != hipSuccess || d_input == nullptr) {
+        printf("{\"error\": \"hipMalloc failed for input\"}\n");
+        return 1;
+    }
+
+    err = hipMalloc(&d_output, (n / warpSize) * sizeof(int));
+    if (err != hipSuccess || d_output == nullptr) {
+        printf("{\"error\": \"hipMalloc failed for output\"}\n");
+        hipFree(d_input);
+        return 1;
+    }
 
     int* h_input = new int[n];
     for (int i = 0; i < n; i++) h_input[i] = 1;
@@ -52,6 +70,16 @@ int main() {
 
     hipDeviceSynchronize();
 
+    // Post-launch error check
+    hipError_t launch_err = hipGetLastError();
+    if (launch_err != hipSuccess) {
+        printf("{\"error\": \"Kernel launch failed: %s\"}\n", hipGetErrorString(launch_err));
+        hipFree(d_input);
+        hipFree(d_output);
+        delete[] h_input;
+        return 1;
+    }
+
     int* h_output = new int[n / warpSize];
     hipMemcpy(h_output, d_output, (n / warpSize) * sizeof(int), hipMemcpyDeviceToHost);
 
@@ -61,7 +89,6 @@ int main() {
     double throughput_gbps = (bytes_processed / elapsed_seconds) / 1e9;
 
     // Verify correctness
-    // On wavefront-64: each wavefront has 64 threads, so n/warpSize = 16 warps, each summing 64
     int expected_per_warp = warpSize;
     int correctness_pass = 1;
     int num_warps = n / warpSize;

@@ -34,22 +34,55 @@ int main() {
     return 0;
 }`;
 
+const PIPELINE_STAGES = [
+  "Translating CUDA \u2192 HIP (hipify-perl)...",
+  "Running static scanner (radeonshift_scanner.py)...",
+  "Injecting MI300X hardware context into agents...",
+  "Agent A (NVIDIA Purist) analyzing for lock-in patterns...",
+  "Agent B (AMD Optimizer) suggesting MI300X fixes...",
+  "Cross-referencing findings...",
+  "Compiling audit report..."
+];
+
 export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode, auditLog, verification, cudaSource = '' }: TargetWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<'code' | 'analytics' | 'telemetry'>('code');
+  const [currentStage, setCurrentStage] = useState(-1);
+  const [completedStages, setCompletedStages] = useState<string[]>([]);
+
+  // Start cycling pipeline stages whenever isTranslating flips on
+  React.useEffect(() => {
+    if (!isTranslating) {
+      setCurrentStage(-1);
+      setCompletedStages([]);
+      return;
+    }
+    setCompletedStages([]);
+    setCurrentStage(0);
+    const stageInterval = setInterval(() => {
+      setCurrentStage((prev) => {
+        if (prev >= PIPELINE_STAGES.length - 1) {
+          clearInterval(stageInterval);
+          return prev;
+        }
+        setCompletedStages((prevCompleted) => [...prevCompleted, PIPELINE_STAGES[prev]]);
+        return prev + 1;
+      });
+    }, 2500);
+    return () => clearInterval(stageInterval);
+  }, [isTranslating]);
 
   const handleDownloadReport = async () => {
     try {
-      const response = await fetch('/pinggy/report', {
+      const response = await fetch('/pinggy/report/zip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Pinggy-No-Screen': 'true' },
         body: JSON.stringify({ cuda_code: cudaSource })
       });
-      const data = await response.json();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'radeonshift_migration_report.json';
+      a.download = 'RadeonShift_Migration_Report.zip';
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -107,6 +140,32 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
 
       {isTranslating && <TranslatingOverlay />}
 
+      {/* Pipeline Progress — shows during translation */}
+      {isTranslating && currentStage >= 0 && (
+        <div className="relative z-20 mx-4 mt-2 bg-gray-900 border border-gray-700 rounded-lg p-4">
+          <div className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Pipeline Progress</div>
+          <div className="space-y-2">
+            {PIPELINE_STAGES.map((stage, index) => {
+              const isCompleted = completedStages.includes(stage);
+              const isCurrent = index === currentStage && !isCompleted;
+              const isFuture = index > currentStage;
+              return (
+                <div key={index} className="flex items-center gap-2 text-xs">
+                  {isCompleted && <span className="text-green-400">✅</span>}
+                  {isCurrent && <span className="text-yellow-400 animate-pulse">●</span>}
+                  {isFuture && <span className="text-gray-600">○</span>}
+                  <span className={
+                    isCompleted ? 'text-gray-500 line-through' :
+                    isCurrent ? 'text-white font-medium' :
+                    'text-gray-600'
+                  }>{stage}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className={`relative z-10 flex-1 overflow-auto transition-all duration-500 ${isTranslating ? 'scale-[0.985] opacity-30 blur-sm' : 'scale-100 opacity-100'}`}>
         {!hasTranslated && !isTranslating ? (
           <IdleState />
@@ -134,7 +193,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
                   className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded transition-colors"
                 >
                   <Download className="h-4 w-4" />
-                  Download Migration Report
+                  Download Migration Report (.zip)
                 </button>
               </div>
             )}

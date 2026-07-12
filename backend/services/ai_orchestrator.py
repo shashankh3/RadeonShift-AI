@@ -1,7 +1,36 @@
 import httpx
 import json
+import os
 import subprocess
 from core.config import FIREWORKS_API_KEY
+
+USE_MOCK_AI = os.environ.get("USE_MOCK_AI", "false").lower() == "true"
+
+
+def get_mock_audit_findings():
+    """Return predefined audit findings for demo mode (USE_MOCK_AI=true)."""
+    return [
+        {
+            "severity": "HIGH",
+            "category": "Wavefront Correctness",
+            "line": 14,
+            "context": "int lane = tid % 32;",
+            "finding": "Hardcoded warpSize=32 assumption. AMD wavefront is 64 on gfx942. This will silently produce wrong results on MI300X.",
+            "fix": "Replace literal 32 with warpSize query",
+            "auto_fixable": True,
+            "patch": "int lane = tid % warpSize;"
+        },
+        {
+            "severity": "MEDIUM",
+            "category": "Memory Coalescing",
+            "line": 22,
+            "context": "for (int offset = 16; offset > 0; offset >>= 1)",
+            "finding": "Reduction offset hardcoded to 16. On wavefront-64, initial offset should be 32 for optimal reduction.",
+            "fix": "Use warpSize / 2 as initial offset",
+            "auto_fixable": True,
+            "patch": "for (int offset = warpSize / 2; offset > 0; offset >>= 1)"
+        }
+    ]
 
 
 def get_hardware_context():
@@ -17,6 +46,11 @@ def get_hardware_context():
 
 
 async def call_agent_a(cuda_code: str, hipify_output: str = "", scanner_findings: str = "") -> dict:
+    if USE_MOCK_AI:
+        findings = get_mock_audit_findings()
+        return {"ptx_risks": findings, "manual_intervention_required": any(
+            f.get("severity") in ["CRITICAL", "HIGH"] for f in findings
+        )}
     if FIREWORKS_API_KEY == "dummy_key_for_testing":
         return {
             "ptx_risks": [
@@ -108,6 +142,8 @@ Scan the CUDA source above for NVIDIA-specific lock-in. Return a JSON array of f
 
 
 async def call_agent_b(cuda_code: str, hip_code: str, hipify_output: str = "", scanner_findings: str = "") -> dict:
+    if USE_MOCK_AI:
+        return {"wavefront_optimizations": [], "estimated_mi300x_ms": 0.0}
     if FIREWORKS_API_KEY == "dummy_key_for_testing":
         return {
             "wavefront_optimizations": [

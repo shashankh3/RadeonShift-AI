@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 import uuid
 import os
 import subprocess
@@ -7,6 +8,8 @@ import asyncio
 import shutil
 import tempfile
 import time
+import zipfile
+import io
 from datetime import datetime
 from models.schemas import CodeRequest, BenchmarkRequest
 from services.verification import build_verification_result
@@ -572,3 +575,61 @@ async def generate_report(request: CodeRequest):
         "migration_confidence_score": confidence_score,
         "timestamp": datetime.now().isoformat()
     }
+
+
+@router.post("/report/zip")
+async def generate_report_zip(request: CodeRequest):
+    cuda_source = request.cuda_code
+    report = await generate_report(request)
+
+    audit_data = report.get("audit", {})
+    benchmark_data = report.get("benchmark", {})
+
+    zip_buffer = io.BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        # 00 - Human-readable summary
+        summary = f"""RADEONSHIFT MIGRATION REPORT
+============================
+
+Migration Confidence Score: {report.get("migration_confidence_score", "N/A")}/100
+
+TRANSLATION
+  Status: {report.get("translation", {}).get("status", "N/A")}
+  Tool: {report.get("translation", {}).get("tool", "N/A")}
+
+AUDIT FINDINGS
+  Total: {audit_data.get("total_findings", 0)}
+  Critical: {audit_data.get("critical_count", 0)}
+  High: {audit_data.get("high_count", 0)}
+  Medium: {audit_data.get("medium_count", 0)}
+  Low: {audit_data.get("low_count", 0)}
+  Auto-fixable: {audit_data.get("auto_fixable_count", 0)}
+
+BENCHMARK
+  Compile: {benchmark_data.get("compile_status", "N/A")}
+  Execution: {benchmark_data.get("elapsed_ms", "N/A")} ms
+  Throughput: {benchmark_data.get("throughput_gbps", "N/A")} GB/s
+  Peak: {benchmark_data.get("peak_pct", "N/A")}% of MI300X peak
+  Correctness: {benchmark_data.get("correctness", "N/A")}
+
+HARDWARE
+  Model: {report.get("hardware", {}).get("model", "N/A")}
+  Mode: {report.get("hardware", {}).get("mode", "N/A")}
+
+TIMESTAMP: {report.get("timestamp", "N/A")}
+"""
+        zf.writestr("00_SUMMARY.txt", summary)
+        zf.writestr("01_original_cuda.cu", cuda_source)
+        zf.writestr("02_translated_hip.hip", report.get("translation", {}).get("output", ""))
+        zf.writestr("03_audit_findings.json", json.dumps(audit_data, indent=2))
+        zf.writestr("04_benchmark_results.json", json.dumps(benchmark_data, indent=2))
+        zf.writestr("05_migration_report.json", json.dumps(report, indent=2))
+
+    zip_buffer.seek(0)
+
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=RadeonShift_Migration_Report.zip"}
+    )

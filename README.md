@@ -48,7 +48,7 @@ Frontend (Next.js) → FastAPI Backend → [hipify-perl | MoA Agents | hipcc + M
 2. **Static Scanner** — radeonshift_scanner.py detects known bug patterns
 3. **Hardware-Aware MoA Audit** — Agent A (NVIDIA Purist) + Agent B (AMD Optimizer) with live MI300X context injection
 4. **Hardware Verification** — hipcc compile + benchmark + correctness check
-5. **Migration Report** — Combined JSON with confidence score
+5. **Migration Report** — Combined zip package with source files, audit findings, benchmark results, and human-readable summary
 
 ---
 
@@ -60,6 +60,32 @@ Frontend (Next.js) → FastAPI Backend → [hipify-perl | MoA Agents | hipcc + M
 | 🟡 Audit-Only | Translation + Audit only | Hardware offline |
 
 The system automatically detects hardware availability and degrades gracefully. Audit findings remain valid in both modes.
+
+---
+
+## Demo Mode
+
+For demo environments without LLM access, set `USE_MOCK_AI=true` in the backend environment. This returns predefined audit findings without calling any LLM, allowing the full UI to be demonstrated without API credits or network dependencies.
+
+| Environment Variable | Description |
+|---|---|
+| `USE_MOCK_AI` | Set to `true` to use predefined audit findings instead of LLM calls |
+
+---
+
+## Current Scope (v1.0)
+
+**What RadeonShift validates:**
+- ✅ Semantic correctness (audit agents catch wavefront-64, PTX, shuffle mask bugs)
+- ✅ Translation completeness (hipify-perl + scanner)
+- ✅ Compilation (hipcc on MI300X — when hardware available)
+- ✅ Runtime correctness (benchmark with checksum verification — when hardware available)
+- ✅ Performance telemetry (throughput, % of peak — when hardware available)
+
+**What is explicitly roadmap:**
+- Repository-level migration (multi-file projects)
+- Automated patch application (currently suggests patches, manual apply)
+- Multi-architecture targeting (currently gfx942 only)
 
 ---
 
