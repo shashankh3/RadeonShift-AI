@@ -15,14 +15,16 @@ export default function ModeBanner() {
           headers: { 'X-Pinggy-No-Screen': 'true' }
         });
         if (!res.ok) {
-          setMode('demo_only');
+          setMode('ai_only');
+          setHwName('Unavailable');
           return;
         }
         const data = await res.json();
-        setMode(data.mode || 'demo_only');
+        setMode(data.mode || 'ai_only');
         setHwName(data.hardware?.hardware || 'Unavailable');
       } catch {
-        setMode('demo_only');
+        setMode('ai_only');
+        setHwName('Unavailable');
       }
     };
 

@@ -79,6 +79,26 @@ If the remote AMD notebook or tunnel is unavailable, RadeonShift automatically f
 
 ---
 
+## Always-On AI Translation Layer
+
+RadeonShift uses a Vercel-hosted server-side API route for Fireworks-powered translation, so CUDA→HIP translation remains available even if the remote AMD notebook is offline.
+
+- **Fireworks AI** handles translation and audit via Vercel Edge/Serverless functions.
+- **AMD MI300X notebook** handles optional compile, benchmark, and ROCm telemetry.
+- This separation keeps the core migration workflow live while allowing hardware verification to reconnect independently.
+
+### Environment Variables
+
+RadeonShift requires the following server-side environment variables configured in your Vercel project (these should never be exposed to the client):
+
+```
+FIREWORKS_API_KEY=<server-side secret stored in Vercel>
+FIREWORKS_MODEL_TRANSLATE=accounts/fireworks/models/deepseek-v4-flash
+FIREWORKS_MODEL_AUDIT=accounts/fireworks/models/deepseek-v4-flash
+```
+
+---
+
 ## Reconnectable Hardware Layer
 
 RadeonShift separates AI audit availability from AMD hardware availability.
