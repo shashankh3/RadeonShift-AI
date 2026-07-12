@@ -106,6 +106,8 @@ RadeonShift separates AI audit availability from AMD hardware availability.
 - **Fireworks AI** provides the always-on audit layer.
 - **AMD MI300X + Pinggy** provide the optional hardware execution layer for compilation, telemetry, and benchmarking.
 
+When live AMD hardware is unavailable, RadeonShift can display cached benchmark evidence captured from prior verified MI300X runs. These values are labeled explicitly and are not presented as live execution results.
+
 If the notebook disconnects, RadeonShift continues in **AI-Only Mode**. When the notebook reconnects, the hardware layer becomes available again without changing the core audit workflow.
 
 ### Pinggy Tunnel Reliability
