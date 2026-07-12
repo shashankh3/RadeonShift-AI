@@ -66,6 +66,15 @@ The MoA Audit Scorecard evaluates the code. Here, the readiness score is 100/100
 
 ---
 
+## Step 3a: Deterministic Redesign Guardrails
+*Advanced CUDA Kernel Detection*
+
+Not all CUDA code maps 1-to-1. RadeonShift's **Deterministic Rules Engine** catches unsupported architectures (e.g., CUDA WMMA, cooperative groups async-copy).
+- **Correctness over completeness:** Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
+- **Score Capping:** Drops readiness score to < 50% automatically, preventing developers from compiling unsafe architecture conversions.
+
+---
+
 ## Step 4: Live Hardware Telemetry
 ![height:350px](./docs/step4.png)
 
