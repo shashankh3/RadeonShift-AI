@@ -2,44 +2,89 @@
   <img src="./docs/logo.png" alt="RadeonShift AI Logo" width="300" />
 </div>
 
-### 🚀 RadeonShift AI
+# RadeonShift AI
 
-**Accelerating the MI300X Hardware Migration via Generative AI**
+**RadeonShift doesn't just translate your CUDA — it catches the bugs that HIPIFY misses, verifies the fix on real AMD MI300X hardware, and delivers a migration report in seconds.**
 
 **Live Demo:** [https://radeon-shift-ai.vercel.app/](https://radeon-shift-ai.vercel.app/)
+**GitHub:** [shashankh3/RadeonShift-AI](https://github.com/shashankh3/RadeonShift-AI)
 
-RadeonShift AI is an architecture-aware CUDA migration and audit platform with optional ROCm hardware verification in supported environments. The system uses a specialized Mixture of Agents (MoA) pipeline to translate syntax and provide deep audit guidance for underlying architectural assumptions (like warp sizes and memory models) to target AMD Instinct hardware (e.g., MI300X).
+---
 
-### 🏗️ System Architecture & Tech Stack
+## What RadeonShift Does
 
-The platform is split into a highly responsive web frontend with serverless translation capabilities, and a bare-metal Python backend for live hardware execution.
+1. **Translate** — Deterministic CUDA→HIP translation via AMD's hipify-perl
+2. **Audit** — Dual-agent AI audit that catches AMD-specific correctness bugs
+3. **Verify** — Compile and benchmark on real AMD Instinct MI300X hardware
 
-**1. Frontend Web Application (Next.js Edge)**
-* **Framework:** Next.js 14 App Router (React)
-* **Styling:** Tailwind CSS with custom glassmorphic "AMD Red" cyber-aesthetics.
-* **Core Functionality:** Streams the AI audit directly to the client. Features highly dynamic dashboarding and a built-in ROI calculator modeling manual engineering hours vs. automated compute costs.
+---
 
-**2. The Bare-Metal Hardware Backend (Python & FastAPI)**
-While the frontend manages the user interface, state, and dynamic rendering, all the heavy lifting sits on a Dockerized FastAPI server designed for ROCm-enabled bare-metal instances, tunneled securely to the frontend via Pinggy. The backend directly orchestrates:
-* **Syntax Translation:** Executes AMD's native `hipify-perl` tool via subprocess to deterministically map CUDA code to C++ HIP syntax.
-* **MoA AI Orchestrator:** Uses Fireworks AI (DeepSeek V4) to run two parallel agents over the translated code:
-  * **Agent A (NVIDIA Purist):** Flags PTX/lock-in risks.
-  * **Agent B (AMD Optimizer):** Suggests MI300X specific tuning (64-lane wavefronts).
-* **Trusted Kernel Compilation:** Compiles benchmark kernels on the fly using `hipcc` and executes them directly on the host AMD GPU to validate the compiler toolchain.
-* **Hardware Telemetry:** Hooks directly into `rocm-smi` to poll live hardware state (GPU name, VRAM usage) and streams verified compute throughput straight to the dashboard.
+## Why Not Just Use HIPIFY?
 
-### 🛡️ Engineering Highlights
+| Capability | HIPIFY | RadeonShift |
+|---|---|---|
+| API renaming | ✅ | ✅ (via hipify-perl) |
+| Semantic correctness audit | ❌ | ✅ (MoA dual-agent) |
+| Wavefront-64 detection | ❌ | ✅ |
+| Compile on AMD hardware | ❌ | ✅ (hipcc on MI300X) |
+| Benchmark with telemetry | ❌ | ✅ |
+| Migration report | ❌ | ✅ |
+| Graceful degradation | ❌ | ✅ |
 
-* **Defeating Caching:** We aggressively bypassed Next.js edge caching via `force-dynamic` to ensure hardware telemetry and benchmark results reflect true real-time, bare-metal server states.
-* **Secure Cross-Environment Routing:** By tunneling the bare-metal Python backend through Pinggy and proxying requests via Next.js `rewrites()`, the platform entirely bypasses browser-level CORS and Mixed Content restrictions.
-* **Transparent Debugging:** The frontend features an advanced error handler that captures raw Python stack traces (like 500 Internal Server Errors) from the remote backend and surfaces them beautifully in the UI for instant troubleshooting.
+HIPIFY gives you code that compiles. RadeonShift tells you it compiles wrong — and proves the fix on real hardware.
 
-### ✨ Features
-* **CUDA to HIP Translation:** Automated mapping of memory APIs, grid launches, and syntax.
-* **Mixture of Agents (MoA) Audit:** Deep analysis for AMD Instinct architecture specifics.
-* **Hardware Verification (Bare-metal):** Live ROCm compilation and benchmark execution.
+---
 
-### 🛠️ Setup & Installation
+## Architecture
+
+```
+Frontend (Next.js) → FastAPI Backend → [hipify-perl | MoA Agents | hipcc + MI300X]
+                          ↓
+              Pinggy Tunnel → AMD MI300X Hardware
+```
+
+### Pipeline Stages
+1. **Deterministic Translation** — hipify-perl (high confidence, no LLM)
+2. **Static Scanner** — radeonshift_scanner.py detects known bug patterns
+3. **Hardware-Aware MoA Audit** — Agent A (NVIDIA Purist) + Agent B (AMD Optimizer) with live MI300X context injection
+4. **Hardware Verification** — hipcc compile + benchmark + correctness check
+5. **Migration Report** — Combined JSON with confidence score
+
+---
+
+## Live Mode vs Fallback Mode
+
+| Mode | Features Available | Trigger |
+|---|---|---|
+| 🟢 Live MI300X | Translation + Audit + Compile + Benchmark + Telemetry | Hardware connected |
+| 🟡 Audit-Only | Translation + Audit only | Hardware offline |
+
+The system automatically detects hardware availability and degrades gracefully. Audit findings remain valid in both modes.
+
+---
+
+## Bug Patterns Detected
+
+See [BUG_PATTERNS.md](BUG_PATTERNS.md) for the full taxonomy.
+
+## Evaluation Plan
+
+See [EVAL_PLAN.md](EVAL_PLAN.md) for the evaluation methodology.
+
+---
+
+## 📸 Application Workflow
+
+![Awaiting Migration](./docs/step1.png)
+![HIP Optimization Core](./docs/step2.png)
+![Architecture Analytics](./docs/step3.png)
+![Hardware Telemetry](./docs/step4.png)
+![Benchmark Execution](./docs/step5.png)
+
+---
+
+## Setup & Installation
+
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/shashankh3/RadeonShift-AI
@@ -52,19 +97,34 @@ While the frontend manages the user interface, state, and dynamic rendering, all
    npm install
    npm run dev
    ```
-4. **Backend (FastAPI - Remote Host):**
+4. **Backend (FastAPI — Remote Host):**
    ```bash
    cd backend
    pip install -r requirements.txt
    uvicorn api.main:app --host 0.0.0.0 --port 8000
    ```
 
-### 📸 Application Workflow
-![Awaiting Migration](./docs/step1.png)
-![HIP Optimization Core](./docs/step2.png)
-![Architecture Analytics](./docs/step3.png)
-![Hardware Telemetry](./docs/step4.png)
-![Benchmark Execution](./docs/step5.png)
+## Docker
+
+```bash
+docker build -t radeonshift .
+docker-compose up
+```
 
 ---
+
+## Roadmap
+
+- Repository-level migration (GitHub URL or ZIP upload)
+- Fine-tuned AMD-specific code model
+- Multi-kernel batch migration
+
+---
+
+## Built For
+
+AMD Developer Hackathon ACT II — Unicorn Track
+
+---
+
 **Created by Shashank Hirwani**

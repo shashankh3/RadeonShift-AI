@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Code2, BrainCircuit, Activity, CheckCircle2, AlertTriangle, Timer, Cpu, Layers, Database } from 'lucide-react';
+import { Code2, BrainCircuit, Activity, CheckCircle2, AlertTriangle, Timer, Cpu, Layers, Database, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import VerificationGate from './VerificationGate';
 import BenchmarkPanel from './BenchmarkPanel';
+import ModeBanner from './ModeBanner';
+import AuditCard from './AuditCard';
+import BenchmarkCard from './BenchmarkCard';
+import CodeDiff from './CodeDiff';
 
 interface TargetWorkspaceProps {
   isTranslating: boolean;
@@ -12,6 +16,7 @@ interface TargetWorkspaceProps {
   rocmCode: string;
   auditLog: string;
   verification?: any;
+  cudaSource?: string;
 }
 
 const ROCM_CODE = `#include <hip/hip_runtime.h>
@@ -29,11 +34,32 @@ int main() {
     return 0;
 }`;
 
-export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode, auditLog, verification }: TargetWorkspaceProps) {
+export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode, auditLog, verification, cudaSource = '' }: TargetWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<'code' | 'analytics' | 'telemetry'>('code');
+
+  const handleDownloadReport = async () => {
+    try {
+      const response = await fetch('/pinggy/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Pinggy-No-Screen': 'true' },
+        body: JSON.stringify({ cuda_code: cudaSource })
+      });
+      const data = await response.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'radeonshift_migration_report.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Report generation failed', err);
+    }
+  };
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#040407]/74">
+      <ModeBanner />
       <div className="pointer-events-none absolute inset-0 circuit-grid opacity-55" />
       <div className="pointer-events-none absolute -right-24 top-20 h-80 w-80 rounded-full bg-amd-red/12 blur-[100px]" />
       <div className="pointer-events-none absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-white/8 blur-[110px]" />
@@ -86,15 +112,32 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
           <IdleState />
         ) : (
           <div className="min-h-full p-4 sm:p-6 lg:p-8">
-            {activeTab === 'code' && <CodePanel code={rocmCode} />}
+            {activeTab === 'code' && (
+              <>
+                <CodePanel code={rocmCode} />
+                <CodeDiff before={rocmCode} after={rocmCode} />
+              </>
+            )}
             {activeTab === 'analytics' && (
               <>
                 <AnalyticsPanel log={auditLog} />
+                <AuditFindingsSection log={auditLog} />
                 <VerificationGate verification={verification} />
                 <BenchmarkPanel />
               </>
             )}
             {activeTab === 'telemetry' && <TelemetryPanel verification={verification} log={auditLog} />}
+            {hasTranslated && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={handleDownloadReport}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Migration Report
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -156,6 +199,37 @@ function CodePanel({ code }: { code: string }) {
         <pre className="font-mono text-[15px] leading-7 whitespace-pre text-[#f2f5ff] selection:bg-amd-red/30">
           <code>{code}</code>
         </pre>
+      </div>
+    </div>
+  );
+}
+
+function AuditFindingsSection({ log }: { log: string }) {
+  let data: any = null;
+  try {
+    data = JSON.parse(log);
+  } catch (e) {
+    return null;
+  }
+
+  const ptxRisks = data?.ptx_risks ?? [];
+  const wavefrontOpts = data?.wavefront_optimizations ?? [];
+
+  // Collect all structured findings (objects with severity/finding/fix fields)
+  const structuredFindings = [
+    ...ptxRisks.filter((f: any) => typeof f === 'object' && f.severity),
+    ...wavefrontOpts.filter((f: any) => typeof f === 'object' && f.severity),
+  ];
+
+  if (structuredFindings.length === 0) return null;
+
+  return (
+    <div className="mx-auto max-w-5xl mt-6">
+      <SectionTitle kicker="MoA Output" title="Audit Findings" />
+      <div className="mt-4">
+        {structuredFindings.map((finding: any, i: number) => (
+          <AuditCard key={i} finding={finding} />
+        ))}
       </div>
     </div>
   );
