@@ -5,8 +5,9 @@ RadeonShift AI operates as an enterprise-grade DevSecOps pipeline for CUDA-to-HI
 ## Trust & Verification Principles
 
 1. **Deterministic Translation First**: Syntax is translated using AMD's `hipify` toolset. LLMs are never used to blindly rewrite syntax, only to audit and recommend.
-2. **No Fabricated Benchmarks**: The platform never reports simulated runtime execution speeds or performance parity unless a kernel was explicitly executed and measured in a secure harness.
+2. **No Fabricated Benchmarks**: The platform never reports simulated runtime execution speeds or performance parity unless a kernel was explicitly executed and measured in a secure harness. When in AI-Only mode (hardware offline), cached benchmark evidence from verified runs is explicitly labeled.
 3. **Transparent Evidence**: The Verification Gate surfaces raw compiler output and deep static analysis (PTX, warp sizes, API remnants). 
+4. **Truthful Scorecard Policy**: Scorecard metrics are derived strictly from the current execution mode (AI-only vs Full-Stack), clearly labeling offline capabilities and avoiding fake hardware telemetry.
 
 ## Execution Policy
 

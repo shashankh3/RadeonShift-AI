@@ -17,25 +17,27 @@ The system relies on a two-phased approach:
 |  Frontend / Actions   | (Next.js 16 / GitHub Actions)
 +-----------------------+
         |
-        v
-+-----------------------+
-|   FastAPI Backend     | (Python, asyncio)
-+-----------------------+
+        +---> [ Vercel Serverless AI Layer ] (Fireworks AI via Edge Routes)
+        |           |
+        |           +--> Agent A: NVIDIA Purist (PTX/Warp risks)
+        |           |
+        |           +--> Agent B: AMD Optimizer (Wavefront64 tuning)
         |
-        +---> [ Deterministic HIPIFY Pass ]
-        |
-        +---> [ MoA Orchestration Engine ]
+        +---> [ FastAPI Backend (Pinggy Tunnel) ] (Python, bare-metal optional)
                     |
-                    +--> Agent A: NVIDIA Purist (PTX/Warp risks)
+                    +--> [ Deterministic HIPIFY Pass & Compile ]
                     |
-                    +--> Agent B: AMD Optimizer (Wavefront64 tuning)
+                    +--> [ AMD MI300X Hardware Telemetry ]
 ```
 
 ## Frontend (Next.js 16, React 19)
 The user interface is a high-performance dashboard styled with TailwindCSS v4. It features a dual-pane editor for source ingress (CUDA) and target workspace (HIP). The UI is deeply integrated with the backend to stream real-time telemetry and Agent scorecard results upon translation completion.
 
-## Backend (FastAPI, Python)
-The backend acts as the central orchestrator. It exposes async REST endpoints that handle inbound CUDA code, route it through the deterministic translation logic, and then fire off parallel requests to the MoA engine using the Fireworks AI API.
+## Edge Layer (Vercel API Routes)
+The Next.js backend leverages Vercel Serverless/Edge functions to orchestrate the Mixture-of-Agents engine. These routes communicate directly with the Fireworks AI API to perform architectural review and generate the audit scorecard, ensuring AI availability even if bare-metal AMD hardware is offline.
+
+## Hardware Layer (FastAPI, Python)
+The FastAPI backend acts as an optional but powerful hardware execution layer. Hosted on an AMD MI300X notebook via Pinggy, it receives the code, performs exact `hipify` syntax translation, executes bare-metal compilation (`hipcc`), and returns live ROCm hardware telemetry.
 
 ## Translation Pipeline
 RadeonShift AI does not use an LLM for the initial translation. Using an LLM for syntax translation introduces hallucinations and non-deterministic behavior. Instead, we use regex-based \`hipify\` rules to ensure mathematically identical API mappings (e.g., \`cudaMalloc\` -> \`hipMalloc\`), and reserve the LLM strictly for architectural review. **This is our core moat.**

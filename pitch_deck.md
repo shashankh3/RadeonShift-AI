@@ -30,8 +30,8 @@ RadeonShift AI is a deterministic Mixture of Agents (MoA) pipeline that translat
 ## Architecture
 
 1. **Frontend (Next.js Edge):** Manages user state and renders the dynamic dashboard.
-2. **Backend Engine (FastAPI via Pinggy):** The true core of the platform. It executes `hipify-perl` for syntax translation and orchestrates the MoA AI pipeline.
-3. **Hardware Verification:** The backend compiles the generated kernel via `hipcc` directly on a bare-metal ROCm instance and polls `rocm-smi` for live telemetry.
+2. **AI Translation Layer (Vercel Edge):** Orchestrates the deterministic translation and Mixture-of-Agents audit via Fireworks AI, operating independently of hardware availability.
+3. **Hardware Engine (FastAPI via Pinggy):** An optional bare-metal ROCm layer that compiles the generated kernel via `hipcc` and polls `rocm-smi` for live telemetry and execution benchmarks.
 
 ---
 
