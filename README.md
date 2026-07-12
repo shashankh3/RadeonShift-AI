@@ -55,7 +55,7 @@ RadeonShift AI is built to catch what naive syntax translation misses: the archi
 
 - **The Mismatch**: NVIDIA executes code in 32-lane warps. AMD Instinct MI300X (gfx942) executes in 64-lane wavefronts.
 - **The Danger**: Code with hardcoded 32-lane assumptions (e.g. `% 32` or `0xFFFFFFFF` shuffle masks) will successfully compile under HIP but produce silently wrong results on AMD hardware.
-- **The Proof**: Our new **Wavefront Bug Demo** provides a canonical example of this risk, featuring a side-by-side **Plain Translation vs RadeonShift** comparison panel to instantly visualize the semantic gap.
+- **The Proof**: Our new **Wavefront-64 Bug Demo** provides a canonical example of this risk, featuring a side-by-side **Plain Translation vs RadeonShift** comparison panel to instantly visualize the semantic gap.
 - **The Evidence**: If the MI300X hardware tunnel is online, RadeonShift provides explicit `hipcc` compile-check evidence, trusted benchmark execution, and live hardware telemetry, degrading gracefully to explicit unavailable/cached labels when offline.
 
 ---

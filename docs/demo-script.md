@@ -7,7 +7,7 @@ I'm [Your Name], and this is **RadeonShift AI** — a CUDA kernel migration assi
 
 ## 1:00 - Source Ingress & Telemetry
 *Screen share: TargetWorkspace UI.*
-"Here is the RadeonShift dashboard. On the left, we ingest a legacy CUDA kernel. Let's load the wavefront bug demo. Notice the system labels whether we are in full-stack, AI-only, or demo mode. I'll hit 'Migrate to ROCm'."
+"Here is the RadeonShift dashboard. On the left, we ingest a legacy CUDA kernel. Let's load the wavefront-64 bug demo. Notice the system labels whether we are in full-stack, AI-only, or demo mode. I'll hit 'Migrate to ROCm'."
 
 ## 2:00 - The Translation Pipeline
 *Click Migrate. Show the loading overlay: HIPIFY -> AGENT A -> AGENT B -> SCORECARD.*
