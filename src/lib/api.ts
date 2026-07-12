@@ -162,7 +162,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     let critical = 0, high = 0, medium = 0, low = 0, auto = 0;
     const ptx = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "HIGH");
     const wf = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "MEDIUM");
-    const all = [...ptx, ...wf];
+    const all: any[] = [...ptx, ...wf];
     
     all.forEach(f => {
       if (f.severity === 'CRITICAL') critical++;
