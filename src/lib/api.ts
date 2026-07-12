@@ -213,8 +213,8 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     let wf: any[] = [];
     
     if (isAdvancedKernel) {
-      ptx = DEMO_ADVANCED_KERNEL_FINDINGS.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH") as any[];
-      wf = DEMO_ADVANCED_KERNEL_FINDINGS.filter(f => f.severity === "MEDIUM") as any[];
+      ptx = (DEMO_ADVANCED_KERNEL_FINDINGS as any).filter((f: any) => f.severity === "CRITICAL" || f.severity === "HIGH");
+      wf = (DEMO_ADVANCED_KERNEL_FINDINGS as any).filter((f: any) => f.severity === "MEDIUM");
     } else if (isWavefrontBug) {
       ptx = DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH") as any[];
       wf = DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "MEDIUM") as any[];
