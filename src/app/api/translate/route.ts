@@ -195,13 +195,16 @@ It is better to return a partially translated, honestly annotated HIP kernel tha
     }
 
     const data = await response.json();
-    let translation = data.choices[0]?.message?.content || '';
+    const rawContent = data.choices[0]?.message?.content || '';
     
     // Clean up potential markdown formatting that the LLM might have leaked
-    translation = translation.replace(/^```(cpp|c\+\+|c)\n/, '').replace(/```\n?$/, '');
+    const cleanCode = rawContent
+      .replace(/^```(cpp|c\+\+|c)?\n/i, '') // Removes starting fence
+      .replace(/```$/g, '')                 // Removes ending fence
+      .trim();                              // Removes extra newlines
 
     return NextResponse.json({
-      translation,
+      translation: cleanCode,
       provider: 'fireworks',
       result_source: 'fireworks_live'
     });
