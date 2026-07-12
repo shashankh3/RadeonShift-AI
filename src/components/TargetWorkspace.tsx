@@ -350,8 +350,8 @@ function AnalyticsPanel({ log }: { log: string }) {
     );
   }
 
-  const ptxRisks = data.ptx_risks || [];
-  const optimizations = data.wavefront_optimizations || [];
+  const ptxRisks = Array.isArray(data.ptx_risks) ? data.ptx_risks : [];
+  const optimizations = Array.isArray(data.wavefront_optimizations) ? data.wavefront_optimizations : [];
 
   let score = data.readiness_score;
   if (score === undefined || score === null) {

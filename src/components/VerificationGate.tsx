@@ -118,7 +118,7 @@ export default function VerificationGate({ verification }: VerificationGateProps
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div className="text-[9px] font-bold uppercase text-white/40 mb-2">Static Analysis Findings</div>
-              {verification.static_analysis?.findings?.length > 0 ? (
+              {Array.isArray(verification.static_analysis?.findings) && verification.static_analysis.findings.length > 0 ? (
                 <ul className="space-y-2">
                   {verification.static_analysis.findings.map((f: any, i: number) => (
                     <li key={i} className="text-xs font-mono text-white/70 bg-white/5 p-2 border-l-2 border-amber-500/50">

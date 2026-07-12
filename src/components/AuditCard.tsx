@@ -59,7 +59,7 @@ export default function AuditCard({ finding }: { finding: AuditFinding }) {
       </div>
 
       {/* Patch diff */}
-      {finding.patch && (
+      {typeof finding.patch === 'string' && (
         <div className="font-mono text-xs bg-gray-950 rounded px-3 py-2 mb-3 overflow-x-auto">
           {finding.patch.split('\n').map((line, i) => (
             <div key={i} className="text-green-400">
