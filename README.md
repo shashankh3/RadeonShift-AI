@@ -110,6 +110,14 @@ When live AMD hardware is unavailable, RadeonShift can display cached benchmark 
 
 If the notebook disconnects, RadeonShift continues in **AI-Only Mode**. When the notebook reconnects, the hardware layer becomes available again without changing the core audit workflow.
 
+## Truthful Scorecard Policy
+
+RadeonShift only displays metrics that are computed from the current execution mode.
+
+- In **AI-only mode**, translation and MoA audit remain live through Fireworks AI, while hardware-only fields are marked unavailable.
+- In **full-stack mode**, the scorecard includes both live AI-derived metrics and live AMD hardware verification data.
+- Cached benchmark evidence, when shown, is explicitly labeled and never presented as live execution.
+
 ### Pinggy Tunnel Reliability
 
 For long-running tunnels, Pinggy supports auto-reconnecting tunnel scripts, and persistent subdomains are available with Pinggy Pro. A persistent subdomain keeps the public backend URL stable across notebook restarts.

@@ -12,6 +12,7 @@ export default function Workspace() {
   const [rocmCode, setRocmCode] = useState('');
   const [auditLog, setAuditLog] = useState('');
   const [verification, setVerification] = useState<any>(null);
+  const [scorecard, setScorecard] = useState<any>(null);
 
   const handleMigrate = async (cudaCode: string) => {
     setIsTranslating(true);
@@ -21,6 +22,7 @@ export default function Workspace() {
       setRocmCode(response.rocm_code);
       setAuditLog(response.audit_log);
       setVerification(response.verification);
+      setScorecard(response.scorecard);
       setHasTranslated(true);
     } catch (e: any) {
       console.error(e);
@@ -51,6 +53,7 @@ export default function Workspace() {
             rocmCode={rocmCode}
             auditLog={auditLog}
             verification={verification}
+            scorecard={scorecard}
           />
         </div>
         <div className="shrink-0 border-t border-white/10 bg-[#040407] p-4">

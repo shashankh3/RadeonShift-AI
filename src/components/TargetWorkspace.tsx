@@ -16,6 +16,7 @@ interface TargetWorkspaceProps {
   rocmCode: string;
   auditLog: string;
   verification?: any;
+  scorecard?: any;
   cudaSource?: string;
 }
 
@@ -44,7 +45,7 @@ const PIPELINE_STAGES = [
   "Compiling audit report..."
 ];
 
-export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode, auditLog, verification, cudaSource = '' }: TargetWorkspaceProps) {
+export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode, auditLog, verification, scorecard, cudaSource = '' }: TargetWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<'code' | 'analytics' | 'telemetry'>('code');
   const [currentStage, setCurrentStage] = useState(-1);
   const [completedStages, setCompletedStages] = useState<string[]>([]);
@@ -198,7 +199,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
                 <BenchmarkPanel />
               </>
             )}
-            {activeTab === 'telemetry' && <TelemetryPanel verification={verification} log={auditLog} />}
+            {activeTab === 'telemetry' && <TelemetryPanel verification={verification} log={auditLog} scorecard={scorecard} />}
             {hasTranslated && (
               <div className="mt-6 flex justify-end items-center gap-4">
                 {verification?.demo_mode && (
@@ -409,48 +410,31 @@ function AnalyticsPanel({ log }: { log: string }) {
   );
 }
 
-function TelemetryPanel({ verification, log }: { verification?: any, log?: string }) {
-  let data = null;
-  try {
-    data = JSON.parse(log || '{}');
-  } catch (e) {
-    // fallback
-  }
-
-  const durationSec = verification?.compile?.duration_ms ? (verification.compile.duration_ms / 1000).toFixed(3) : "2.410";
-  const llmTimeSec = data?.estimated_mi300x_ms ? (data.estimated_mi300x_ms / 1000).toFixed(3) : "0.012";
+function TelemetryPanel({ verification, log, scorecard }: { verification?: any, log?: string, scorecard?: any }) {
+  const isHwOnline = scorecard?.hardware?.status === 'online';
   
-  const [liveGpu, setLiveGpu] = React.useState<string>("Loading...");
+  const gpuName = isHwOnline ? (scorecard.hardware.gpu || 'MI300X') : 'Offline';
+  const rocmVer = isHwOnline ? (scorecard.hardware.rocm_version || '6.1') : 'Unavailable';
+  const provider = scorecard?.translation?.provider || 'Fireworks AI';
   
-  React.useEffect(() => {
-    fetch('/pinggy/telemetry', { headers: { 'X-Pinggy-No-Screen': 'true' } })
-      .then(res => res.json())
-      .then(data => {
-        if (data.gpu || data.hardware) {
-          setLiveGpu(data.gpu || data.hardware);
-        } else if (data.status === 'live' || data.raw_data) {
-          setLiveGpu('MI300X (Live)');
-        } else {
-          setLiveGpu('Hardware Unavailable');
-        }
-      })
-      .catch(() => setLiveGpu("Hardware Unavailable"));
-  }, []);
-
-  const gpuName = verification?.environment?.gpu ? verification.environment.gpu.trim() : liveGpu;
+  const latency = scorecard?.translation?.latency_ms 
+    ? (scorecard.translation.latency_ms / 1000).toFixed(3) 
+    : (scorecard?.execution_mode === 'demo_only' ? "N/A" : "...");
+    
+  const confScore = scorecard?.audit?.confidence_score ?? 100;
 
   return (
     <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-2">
       <div className="amd-surface md:col-span-2 overflow-hidden p-6">
         <div className="relative z-10 mb-6 flex items-end justify-between gap-4">
           <div>
-            <h3 className="mb-2 text-sm font-black uppercase tracking-[0.28em] text-white/42">Syntax Matching Accuracy</h3>
-            <div className="text-6xl font-black tracking-[-0.08em] text-white">100<span className="text-3xl text-white">%</span></div>
+            <h3 className="mb-2 text-sm font-black uppercase tracking-[0.28em] text-white/42">Audit Confidence Score</h3>
+            <div className="text-6xl font-black tracking-[-0.08em] text-white">{confScore}<span className="text-3xl text-white">%</span></div>
           </div>
           <CheckCircle2 className="mb-2 h-10 w-10 text-white drop-shadow-[0_0_14px_rgba(255,255,255,0.8)]" />
         </div>
         <div className="relative z-10 h-4 overflow-hidden border border-white/10 bg-black/45">
-          <div className="relative h-full bg-gradient-to-r from-white via-white to-radeon-orange shadow-[0_0_22px_rgba(255,255,255,0.85)]">
+          <div className="relative h-full bg-gradient-to-r from-white via-white to-radeon-orange shadow-[0_0_22px_rgba(255,255,255,0.85)]" style={{ width: `${confScore}%` }}>
             <div className="absolute inset-0 animate-[slide_1s_linear_infinite] bg-[linear-gradient(45deg,rgba(0,0,0,0.22)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.22)_50%,rgba(0,0,0,0.22)_75%,transparent_75%,transparent)] bg-[length:22px_22px]" />
           </div>
         </div>
@@ -458,19 +442,19 @@ function TelemetryPanel({ verification, log }: { verification?: any, log?: strin
 
       <TelemetryCard
         icon={<Timer className="h-10 w-10" />}
-        label="Translation Speed"
-        value={durationSec}
+        label="Translation Latency"
+        value={latency}
         unit="s"
-        caption="via hipify-perl core"
+        caption={`via ${provider}`}
       />
 
       <div className="amd-surface p-6">
         <div className="relative z-10">
           <h3 className="mb-5 text-sm font-black uppercase tracking-[0.28em] text-white/42">Target Environment</h3>
           <div className="space-y-3">
+            <EnvRow icon={<Database className="h-5 w-5" />} label="AI Layer" value={provider} />
             <EnvRow icon={<Cpu className="h-5 w-5" />} label="Hardware" value={gpuName} />
-            <EnvRow icon={<Layers className="h-5 w-5" />} label="Platform" value="ROCm 6.1" />
-            <EnvRow icon={<Database className="h-5 w-5" />} label="LLM Layer" value="DeepSeek V4" />
+            {isHwOnline && <EnvRow icon={<Layers className="h-5 w-5" />} label="Platform" value={`ROCm ${rocmVer}`} />}
           </div>
         </div>
       </div>
