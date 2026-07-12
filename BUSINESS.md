@@ -2,7 +2,7 @@
 
 ## The Persona (Real User, Real Pain)
 
-Maya is a Senior ML Engineer at a fintech firm. Her team has 340,000 lines of CUDA code and an active AMD MI300X cluster they cannot utilize due to vendor lock-in. Every month they pay for idle AMD hardware while continuing to lease NVIDIA H100s at premium rates. RadeonShift turns her 18-month manual migration project into a 3-week automated sprint.
+Maya is a Senior ML Engineer at a fintech firm. Her team has a large CUDA codebase and access to AMD MI300X capacity they cannot fully utilize due to vendor lock-in. Every month they pay for idle AMD hardware while continuing to lease NVIDIA H100s at premium rates. RadeonShift helps turn a slow manual first-pass migration review into a faster AI-assisted triage and audit workflow.
 
 ## The Economics That Pencil Out
 
@@ -11,10 +11,10 @@ Maya is a Senior ML Engineer at a fintech firm. Her team has 340,000 lines of CU
 | Manual rewrite | ~400 hours | High | $60,000 | 100% |
 | ChatGPT / generic LLM | ~2 hours | Low (hallucination risk) | ~$5 | 80%+ |
 | AMD hipify-perl (raw) | ~5 minutes | High (syntax only) | ~$0 | 40% (no optimization) |
-| **RadeonShift** | **~8 minutes** | **High (AI Translation + Audit)** | **~$12** | **<10%** |
+| **RadeonShift** | **~8 minutes first-pass triage** | **High-value audit assistance** | **~$12 illustrative compute** | **Human validation still required** |
 
 - **Legacy Cost:** A 100-kernel migration done manually requires approximately 400 engineer-hours at $150/hr, totaling $60,000.
-- **RadeonShift Cost:** The identical batch migration costs approximately $12 in Fireworks AI API tokens and AMD Developer Cloud compute.
+- **RadeonShift Cost:** An illustrative first-pass AI audit/translation run costs approximately $12 in Fireworks AI API tokens and AMD compute assumptions.
 - **ROI: Significant ROI**
 
 ## The Defensible Edge

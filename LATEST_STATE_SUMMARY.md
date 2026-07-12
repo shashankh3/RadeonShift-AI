@@ -77,7 +77,7 @@ Activated only when both Fireworks AI and the notebook are unreachable:
 | `src/components/BenchmarkPanel.tsx` | Interactive benchmark runner + evidence display |
 | `src/components/BenchmarkCard.tsx` | Stateless benchmark card (used for static rendering) |
 | `src/components/AuditCard.tsx` | Renders individual finding cards |
-| `src/components/BackendStatusPanel.tsx` | Infrastructure health display |
+| `src/components/Header.tsx` / `src/components/ModeBanner.tsx` | Infrastructure health and mode display |
 
 ### API Layer (Vercel Server-Side)
 | File | Responsibility |
@@ -94,8 +94,9 @@ Activated only when both Fireworks AI and the notebook are unreachable:
 ### Backend (Optional — AMD Notebook)
 | File | Responsibility |
 |---|---|
-| `backend/main.py` | FastAPI app with `/health`, `/benchmark`, `/report` endpoints |
-| `backend/ai_orchestrator.py` | MoA orchestration (used in full-stack only) |
+| `backend/main.py` | FastAPI app entrypoint |
+| `backend/api/routes.py` | `/health`, `/translate`, `/benchmark/*`, `/report`, `/report/zip` endpoints |
+| `backend/services/ai_orchestrator.py` | MoA orchestration for backend/CI path |
 | `backend/hero_kernels/` | CUDA + HIP reference kernels |
 
 ---

@@ -70,7 +70,7 @@ Expected behavior when both Fireworks and notebook are offline:
 - [ ] ROCm version is `null` when hardware is offline — row hidden from Telemetry panel
 - [ ] `scorecard.hardware.telemetry_available` is `false` when notebook is offline
 - [ ] No "GPU Verified" or "Verified" label shows when hardware is not online
-- [ ] `BackendStatusPanel` hardware row shows "OFFLINE" when notebook unreachable
+- [ ] `Header` / `ModeBanner` hardware state shows "OFFLINE" or AI-only mode when notebook is unreachable
 
 ### Benchmark Provenance
 

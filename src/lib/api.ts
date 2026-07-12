@@ -44,10 +44,10 @@ const API_BASE_URL = '/pinggy';
 export async function translateCode(code: string): Promise<TranslationResponse> {
   const tStart = performance.now();
   let hwData: any = null;
-  
+
   // Quick health check to see if hardware is alive
   try {
-    const hwRes = await fetch('/pinggy/health', { headers: { 'X-Pinggy-No-Screen': 'true' }});
+    const hwRes = await fetch('/pinggy/health', { headers: { 'X-Pinggy-No-Screen': 'true' } });
     if (hwRes.ok) hwData = await hwRes.json();
   } catch (e) {
     hwData = null;
@@ -70,7 +70,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
 
     let auditLog: any = {};
     let auditLatency = 0;
-    
+
     try {
       const aStart = performance.now();
       const auditRes = await fetch('/api/audit', {
@@ -123,7 +123,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       hasCgAsync = true;
       allFindings.push({ severity: "CRITICAL", category: "Unsupported HIP Feature", finding: "cooperative_groups async copy (memcpy_async/wait) is NOT supported in HIP.", fix: "Requires manual redesign using standard shared memory loads or AMD-specific async copy built-ins if supported by target architecture.", auto_fixable: false });
     }
-    
+
     if (code.includes('nvcuda') || code.includes('wmma::fragment') || code.includes('wmma::mma_sync') || code.includes('wmma::load_matrix_sync') || code.includes('wmma::store_matrix_sync') || code.includes('<mma.h>')) {
       hasWmma = true;
       allFindings.push({ severity: "CRITICAL", category: "Tensor Core / WMMA Portability", finding: "CUDA WMMA / Tensor Core patterns detected. Direct translation to HIP is unsafe and often fails to compile without rocWMMA.", fix: "Manual redesign required: Rewrite using AMD rocWMMA library for matrix core acceleration.", auto_fixable: false });
@@ -133,7 +133,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       hasIncomplete = true;
       allFindings.push({ severity: "CRITICAL", category: "Incomplete Source / Compile Risk", finding: "Undefined temp storage 'sdata_temp' detected. This indicates an incomplete source file or missing header that will fail to compile.", fix: "Ensure all shared memory arrays are properly defined and bounded before migration.", auto_fixable: false });
     }
-    
+
     let critical = 0, high = 0, medium = 0, low = 0, auto = 0;
     let hasRedesignRequired = false;
     allFindings.forEach(f => {
@@ -204,14 +204,14 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     };
   } catch (err) {
     console.warn("AI Translation unavailable, using frontend emergency demo mode", err);
-    
+
     let critical = 0, high = 0, medium = 0, low = 0, auto = 0;
     const isWavefrontBug = code.includes('warpReduceSum');
     const isAdvancedKernel = code.includes('advancedReduce');
-    
+
     let ptx: any[] = [];
     let wf: any[] = [];
-    
+
     if (isAdvancedKernel) {
       ptx = (DEMO_ADVANCED_KERNEL_FINDINGS as any).filter((f: any) => f.severity === "CRITICAL" || f.severity === "HIGH");
       wf = (DEMO_ADVANCED_KERNEL_FINDINGS as any).filter((f: any) => f.severity === "MEDIUM");
@@ -222,10 +222,10 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       ptx = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "HIGH") as any[];
       wf = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "MEDIUM") as any[];
     }
-    
+
     const all: any[] = [...ptx, ...wf];
     let hasRedesignRequired = false;
-    
+
     all.forEach(f => {
       if (f.severity === 'CRITICAL') critical++;
       else if (f.severity === 'HIGH') high++;
@@ -238,7 +238,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     let conf = 100 - (25 * critical) - (20 * high) - (5 * medium) - (1 * low);
     if (isAdvancedKernel) conf = 39; // Caps for advanced kernel
     else if (hasRedesignRequired && conf === 100) conf = 80;
-    
+
     if (conf < 0) conf = 0;
 
     const scorecard: ScorecardData = {
@@ -268,8 +268,8 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       benchmark: {
         status: "cached",
         elapsed_ms: 0.026,
-        throughput_gbps: 2800,
-        peak_pct: 85
+        throughput_gbps: DEMO_BENCHMARK.throughput_gbps,
+        peak_pct: DEMO_BENCHMARK.peak_pct
       }
     };
 

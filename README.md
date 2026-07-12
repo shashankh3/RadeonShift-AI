@@ -15,7 +15,7 @@
 
 1. **Translate** — AI translation via Fireworks with semantic migration audit
 2. **Audit** — Dual-agent AI audit (Fireworks AI) that catches AMD-specific correctness bugs
-3. **Verify** — Optionally compile and benchmark on real AMD Instinct MI300X hardware when connected
+3. **Verify** — Optionally compile-check generated HIP and run trusted benchmark kernels on real AMD Instinct MI300X hardware when connected
 
 *RadeonShift can also detect advanced CUDA kernels that require AMD-specific redesign rather than direct translation (e.g., unsupported cooperative groups async copy and WMMA patterns).*
 
@@ -44,7 +44,7 @@ RadeonShift AI is built to catch what naive syntax translation misses: the archi
 - **The Mismatch**: NVIDIA executes code in 32-lane warps. AMD Instinct MI300X (gfx942) executes in 64-lane wavefronts.
 - **The Danger**: Code with hardcoded 32-lane assumptions (e.g. `% 32` or `0xFFFFFFFF` shuffle masks) will successfully compile under HIP but produce silently wrong results on AMD hardware.
 - **The Proof**: Our new **Wavefront Bug Demo** provides a canonical example of this risk, featuring a side-by-side **Plain Translation vs RadeonShift** comparison panel to instantly visualize the semantic gap.
-- **The Evidence**: If the MI300X hardware tunnel is online, RadeonShift provides an explicit, safe `hipcc` compile-check placeholder and live hardware telemetry, degrading gracefully to explicit placeholders when offline.
+- **The Evidence**: If the MI300X hardware tunnel is online, RadeonShift provides explicit `hipcc` compile-check evidence, trusted benchmark execution, and live hardware telemetry, degrading gracefully to explicit unavailable/cached labels when offline.
 
 ---
 
@@ -204,8 +204,8 @@ FIREWORKS_MODEL_AUDIT=accounts/fireworks/models/deepseek-v4-flash
 
 ### AMD Notebook / Backend (FastAPI)
 ```
-# No secrets required — the backend does not call Fireworks directly
-# The notebook only provides hardware verification endpoints
+# Hardware health/benchmark endpoints do not require secrets.
+# FIREWORKS_API_KEY is optional for backend /translate or report MoA paths.
 ```
 
 > ⚠️ Never commit `FIREWORKS_API_KEY` to any file. It must only exist as a Vercel environment variable.
@@ -214,7 +214,7 @@ FIREWORKS_MODEL_AUDIT=accounts/fireworks/models/deepseek-v4-flash
 
 ## Pipeline Stages
 
-1. **AI Translation** — LLM-based hipify translation via `/api/translate` → Fireworks AI
+1. **AI Translation** — LLM-based CUDA→HIP translation via `/api/translate` → Fireworks AI
 2. **MoA Audit** — Agent A (NVIDIA Purist) + Agent B (AMD Optimizer) via `/api/audit` → Fireworks AI
 3. **Hardware Verification** *(optional)* — `hipcc` compile + benchmark + rocm-smi telemetry via notebook
 4. **Migration Report** *(when notebook connected)* — ZIP package with source, audit, benchmark, and summary
@@ -245,8 +245,8 @@ See [LATEST_STATE_SUMMARY.md](LATEST_STATE_SUMMARY.md) for the current architect
 - ✅ Semantic correctness (AI audit agents catch wavefront-64, PTX, shuffle mask bugs)
 - ✅ Translation completeness (Fireworks AI + prompt-guided hipify)
 - ✅ Confidence score (computed from actual audit findings, not hardcoded)
-- ✅ Compilation (hipcc on MI300X — when hardware available)
-- ✅ Runtime correctness (benchmark with checksum verification — when hardware available)
+- ✅ Compilation check (hipcc on MI300X — when hardware available)
+- ✅ Trusted benchmark correctness (internal benchmark kernels with checksum verification — when hardware available)
 - ✅ Performance telemetry (throughput, % of peak — when hardware available)
 
 **Roadmap:**
@@ -287,7 +287,7 @@ See [LATEST_STATE_SUMMARY.md](LATEST_STATE_SUMMARY.md) for the current architect
    ```bash
    cd backend
    pip install -r requirements.txt
-   uvicorn api.main:app --host 0.0.0.0 --port 8000
+   uvicorn main:app --host 0.0.0.0 --port 8000
    # Then expose via Pinggy:
    # ssh -p 443 -R0:localhost:8000 a.pinggy.io
    ```

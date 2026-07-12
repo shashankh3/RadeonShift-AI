@@ -19,19 +19,19 @@ Enterprise AI workloads are facing massive bottlenecks due to a reliance on lega
 ---
 
 ## The Solution: RadeonShift AI
-RadeonShift AI is a AI-assisted CUDA kernel migration assistant that translates CUDA to ROCm instantly and audits the architecture.
+RadeonShift AI is an AI-assisted CUDA kernel migration assistant that translates CUDA to HIP/ROCm and audits architecture-specific migration risks.
 
 1. **Syntax Translation:** Uses Fireworks-hosted translation model for AI Translation.
 2. **MoA Audit:** Leverages DeepSeek-V4 to scan for PTX risks, hardcoded warp sizes, and AMD-specific optimizations.
-3. **Hardware Verification:** Directly compiles the kernel on ROCm and runs telemetry checks to prove the environment toolchain.
+3. **Optional Hardware Evidence:** When the ROCm backend is online, RadeonShift can compile-check generated HIP and show MI300X telemetry. Benchmark mode uses trusted internal kernels and clearly labels live, cached, or unavailable evidence.
 
 ---
 
 ## Architecture
 
-1. **Frontend (Next.js Edge):** Manages user state and renders the dynamic dashboard.
-2. **AI Translation Layer (Vercel Edge):** Orchestrates the AI translation and Mixture-of-Agents audit via Fireworks AI, operating independently of hardware availability.
-3. **Hardware Engine (FastAPI via Pinggy):** An optional bare-metal ROCm layer that compiles the generated kernel via `hipcc` and polls `rocm-smi` for live telemetry and execution benchmarks.
+1. **Frontend (Next.js):** Manages user state and renders the dynamic dashboard.
+2. **AI Translation Layer (Vercel / Next.js API Routes):** Orchestrates AI translation and Mixture-of-Agents audit via Fireworks AI, operating independently of hardware availability.
+3. **Optional Hardware Engine (FastAPI via Pinggy):** A bare-metal ROCm layer that can compile-check generated HIP via `hipcc`, poll `rocm-smi` for telemetry, and run trusted benchmark kernels when connected.
 
 ---
 
@@ -62,7 +62,7 @@ Upon engaging the ROCm translation pass, the core converts the syntax. The resul
 ## Step 3: Architecture Analytics
 ![height:350px](./docs/step3.png)
 
-The MoA Audit Scorecard evaluates the code. Here, the readiness score is 100/100, proving high portability. Our dual AI agents verify there are no hidden PTX risks or lock-ins.
+The MoA Audit Scorecard evaluates the code and computes a readiness score from actual findings. Clean examples can score high, while risky kernels are lowered or capped when PTX, wavefront, WMMA, or async-copy risks appear.
 
 ---
 
@@ -71,31 +71,31 @@ The MoA Audit Scorecard evaluates the code. Here, the readiness score is 100/100
 
 Not all CUDA code maps 1-to-1. RadeonShift's **Deterministic Rules Engine** catches unsupported architectures (e.g., CUDA WMMA, cooperative groups async-copy).
 - **Correctness over completeness:** Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
-- **Score Capping:** Drops readiness score to < 50% automatically, preventing developers from compiling unsafe architecture conversions.
+- **Score Capping:** Drops readiness score to < 50% automatically, discouraging unsafe architecture conversions from being treated as ready.
 
 ---
 
 ## Step 4: Live Hardware Telemetry
 ![height:350px](./docs/step4.png)
 
-Instead of simulated data, the platform connects directly to the remote bare-metal AMD MI300X instance, verifying the exact compile duration and matching the live hardware target.
+When the optional backend is online, the platform connects to a remote bare-metal AMD MI300X environment and surfaces live ROCm telemetry plus compile-check evidence. When offline, hardware fields are explicitly labeled unavailable or cached.
 
 ---
 
 ## Step 5: Bare-Metal Benchmark Execution
 ![height:350px](./docs/step5.png)
 
-Finally, the translated HIP code is natively compiled and executed on the MI300X. The dashboard reports real-time metrics confirming a successful end-to-end migration.
+Finally, benchmark mode runs trusted HIP benchmark kernels on MI300X when hardware is online. RadeonShift does not automatically execute arbitrary uploaded kernels; it separates AI audit, compile-check evidence, and runtime benchmark provenance.
 
 ---
 
 ## Business Value & ROI
 
-**The Significant ROI Model**
+**Illustrative ROI Model**
 - **Manual Migration:** 244 Kernels × 4 hrs = 976 Engineer-Hours (~$146,000, based on $150/hr senior GPU engineer rate)
-- **RadeonShift Migration:** 244 Kernels × 0.12 compute cost = ~$29
-- **Time Savings:** Months reduced to minutes.
-- **TAM:** $25B+ (Global AI Hardware & Software Services Market)
+- **RadeonShift Migration:** 244 Kernels × illustrative ~$0.12 AI/compute cost = ~$29 first-pass triage estimate
+- **Time Savings:** Initial audit and translation can shrink from weeks of first-pass review to minutes, with human validation still required for production.
+- **TAM:** $4.2B illustrative GPU migration and porting services market estimate.
 
 ---
 
@@ -103,7 +103,7 @@ Finally, the translated HIP code is natively compiled and executed on the MI300X
 
 - **Hardware Target:** Optimized for AMD Instinct MI300X
 - **Software Stack:** Built on ROCm 6.x APIs and `hipcc`
-- **AI Acceleration:** MoA pipeline runs on Fireworks AI, which provides AMD Instinct GPU-powered inference
+- **AI Acceleration:** MoA pipeline runs through the Fireworks-hosted inference API
 - **Honest Fallbacks:** If the backend lacks ROCm hardware, the platform gracefully enters AI-Only mode, explicitly labeling any cached evidence without fabricating live metrics
 
 ---
@@ -116,7 +116,7 @@ Finally, the translated HIP code is natively compiled and executed on the MI300X
 2. **Defensive APIs:** Built robust frontend parsing to gracefully handle sudden JSON schema changes.
 3. **CORS Routing:** Bypassed strict mixed-content blocks by tunneling through Pinggy and Next.js `rewrites()`.
 4. **Transparent Debugging:** Overhauled error handling to surface remote Python stack traces in the UI.
-5. **Structured AI Prompts:** Forced LLMs to generate explicit confirmations for clean code, preventing UI state collapses.
+5. **Structured AI Prompts:** Constrained LLM outputs to raw HIP code or JSON audit findings, reducing UI parsing failures.
 
 ---
 

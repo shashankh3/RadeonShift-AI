@@ -1,11 +1,12 @@
 # RadeonShift AI Architecture
 
 ## Overview
-RadeonShift AI is an CUDA kernel migration assistant designed to autonomously migrate, peer-review, and optimize legacy NVIDIA CUDA code for AMD MI300X hardware. 
+RadeonShift AI is a CUDA kernel migration assistant designed to translate, peer-review, and audit NVIDIA CUDA code for AMD MI300X / ROCm portability. It assists developers rather than claiming fully autonomous production migration.
 
-The system relies on a two-phased approach:
-1. **AI Translation:** Leveraging Fireworks AI for semantic initial baseline translations.
-2. **Mixture-of-Agents (MoA) Orchestration:** Utilizing specialized LLM agents to review the AI translated output for hardware-specific optimizations and architectural lock-in risks.
+The system relies on a three-part approach:
+1. **AI Translation:** Leveraging Fireworks AI for semantic initial baseline translations in the primary web flow.
+2. **Mixture-of-Agents (MoA) Orchestration:** Utilizing specialized LLM agents to review translated output for hardware-specific optimizations and architectural lock-in risks.
+3. **Optional ROCm Evidence:** Using a FastAPI backend via Pinggy for `hipify-perl`, `hipcc` compile checks, trusted benchmark kernels, and `rocm-smi` telemetry when available.
 
 ## System Diagram
 
@@ -14,10 +15,10 @@ The system relies on a two-phased approach:
         |
         v
 +-----------------------+
-|  Frontend / Actions   | (Next.js 16 / GitHub Actions)
+| Frontend / Optional CI | (Next.js 16 / GitHub Actions)
 +-----------------------+
         |
-        +---> [ Vercel Serverless AI Layer ] (Fireworks AI via Edge Routes)
+        +---> [ Vercel / Next.js API Layer ] (Fireworks AI via server-side routes)
         |           |
         |           +--> Agent A: NVIDIA Purist (PTX/Warp risks)
         |           |
@@ -25,7 +26,7 @@ The system relies on a two-phased approach:
         |
         +---> [ FastAPI Backend (Pinggy Tunnel) ] (Python, bare-metal optional)
                     |
-                    +--> [ AI HIPIFY Pass & Compile ]
+                    +--> [ hipify-perl + hipcc Compile Check ]
                     |
                     +--> [ AMD MI300X Hardware Telemetry ]
 ```
@@ -33,14 +34,14 @@ The system relies on a two-phased approach:
 ## Frontend (Next.js 16, React 19)
 The user interface is a high-performance dashboard styled with TailwindCSS v4. It features a dual-pane editor for source ingress (CUDA) and target workspace (HIP). The UI is deeply integrated with the backend to stream real-time telemetry and Agent scorecard results upon translation completion.
 
-## Edge Layer (Vercel API Routes)
-The Next.js backend leverages Vercel Serverless/Edge functions to orchestrate the Mixture-of-Agents engine. These routes communicate directly with the Fireworks AI API to perform architectural review and generate the audit scorecard, ensuring AI availability even if bare-metal AMD hardware is offline.
+## Vercel API Layer (Next.js Route Handlers)
+The Next.js backend uses server-side API routes to call Fireworks AI for translation and audit. This keeps `FIREWORKS_API_KEY` out of the browser and allows AI-only operation even if bare-metal AMD hardware is offline.
 
 ## Hardware Layer (FastAPI, Python)
-The FastAPI backend acts as an optional but powerful hardware execution layer. Hosted on an AMD MI300X notebook via Pinggy, it receives the code, performs exact `hipify` syntax translation, executes bare-metal compilation (`hipcc`), and returns live ROCm hardware telemetry.
+The FastAPI backend acts as an optional hardware evidence layer. Hosted on an AMD MI300X notebook via Pinggy, it can run `hipify-perl`, perform `hipcc` compile checks, expose live ROCm telemetry, generate reports, and execute trusted benchmark kernels. Uploaded kernels are not automatically executed without a safe harness.
 
 ## Translation Pipeline
-RadeonShift AI uses Fireworks AI for translation and architectural review.**
+The primary web pipeline uses Fireworks AI for translation and architectural review. The optional backend also contains a legacy/CI path that can run `hipify-perl` before MoA audit and compile checks.
 
 ## Mixture of Agents (MoA)
 Once the code is translated, two agents review the code in parallel:
@@ -48,7 +49,7 @@ Once the code is translated, two agents review the code in parallel:
 - **Agent B (AMD Optimizer):** Analyzes the code specifically for execution on MI300X architectures, suggesting Wavefront64 optimizations and memory access patterns.
 
 ## GitHub Action Workflow
-For enterprise integration, RadeonShift AI operates headlessly via a GitHub Action. When a developer opens a PR containing \`.cu\` or \`.cuh\` files, the action triggers the backend, performs the MoA analysis, and posts a detailed markdown scorecard directly onto the PR.
+For optional CI integration, RadeonShift AI includes a GitHub Action. When configured with `RADEONSHIFT_BACKEND_URL`, a PR containing `.cu` or `.cuh` files can trigger a remote backend audit and post a markdown scorecard onto the PR.
 
 ## Deployment Model
-The application is designed to be deployed containerized (Docker) on AMD Developer Cloud infrastructure, ensuring the MoA backend and translation engine run closely coupled with target compilation environments.
+The frontend can be deployed on Vercel or as a standalone Docker image. The optional FastAPI backend can run near an AMD ROCm environment and be exposed via Pinggy or another secure tunnel.
