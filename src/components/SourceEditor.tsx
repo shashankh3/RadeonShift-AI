@@ -90,6 +90,7 @@ const DEFAULT_FILES = DEMO_SNIPPETS.VectorAdd;
 export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorProps) {
   const [activeFile, setActiveFile] = useState<'kernel.cu' | 'main.cu'>('kernel.cu');
   const [files, setFiles] = useState(DEFAULT_FILES);
+  const [selectedDemoId, setSelectedDemoId] = useState<string | null>('VectorAdd');
   const lineNumbersRef = useRef<HTMLDivElement>(null);
   
   const currentCode = files[activeFile];
@@ -161,19 +162,31 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
         </div>
       </div>
 
-      <div className="flex items-center gap-3 border-b border-white/10 bg-[#07070a]/80 px-4 py-2">
-        <button onClick={() => setFiles(DEMO_SNIPPETS.SGEMM)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)] active:scale-95">
-          Demo: SGEMM
-        </button>
-        <button onClick={() => setFiles(DEMO_SNIPPETS.VectorAdd)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)] active:scale-95">
-          Demo: Vector Add
-        </button>
-        <button onClick={() => setFiles(DEMO_SNIPPETS.Softmax)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)] active:scale-95">
-          Demo: Softmax
-        </button>
-        <button onClick={() => setFiles(DEMO_SNIPPETS.WavefrontBug)} className="rounded-full border border-amd-red/50 bg-amd-red/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white transition-all hover:bg-amd-red/20 hover:shadow-[0_0_15px_rgba(237,28,36,0.6)] active:scale-95">
-          Demo: Wavefront Bug
-        </button>
+      <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-[#07070a]/80 px-4 py-2">
+        {([
+          { id: 'SGEMM', label: 'Demo: SGEMM' },
+          { id: 'VectorAdd', label: 'Demo: Vector Add' },
+          { id: 'Softmax', label: 'Demo: Softmax' },
+          { id: 'WavefrontBug', label: 'Demo: Wavefront Bug' }
+        ] as const).map(({ id, label }) => {
+          const isActive = selectedDemoId === id;
+          return (
+            <button
+              key={id}
+              onClick={() => {
+                setFiles(DEMO_SNIPPETS[id]);
+                setSelectedDemoId(id);
+              }}
+              className={`rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${
+                isActive 
+                  ? 'border border-amd-red/50 bg-amd-red/10 text-white shadow-[0_0_15px_rgba(237,28,36,0.6)] hover:bg-amd-red/20' 
+                  : 'border border-white/20 bg-white/[0.02] text-white/60 hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)]'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="relative flex flex-1 overflow-hidden bg-[#030305]/88 shadow-inner shadow-black">
@@ -187,7 +200,13 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
 
         <textarea
           value={currentCode}
-          onChange={(e) => setFiles(prev => ({ ...prev, [activeFile]: e.target.value }))}
+          onChange={(e) => {
+            const newCode = e.target.value;
+            setFiles(prev => ({ ...prev, [activeFile]: newCode }));
+            if (selectedDemoId && DEMO_SNIPPETS[selectedDemoId as keyof typeof DEMO_SNIPPETS][activeFile] !== newCode) {
+              setSelectedDemoId(null);
+            }
+          }}
           onScroll={(e) => {
             if (lineNumbersRef.current) {
               lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop;
