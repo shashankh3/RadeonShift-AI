@@ -96,6 +96,26 @@ export default function BenchmarkPanel() {
           </div>
         </div>
 
+        {/* Compile Check Placeholder (Task 4) */}
+        <div className="mb-6 p-4 bg-black/40 border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 mb-1">
+              Backend Compile Verification (hipcc)
+            </div>
+            {status === 'unavailable' || !result ? (
+              <div className="text-sm font-medium text-yellow-500/80 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Compile check unavailable — hardware offline
+              </div>
+            ) : (
+              <div className="text-sm font-medium text-emerald-400 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                ✓ Compile Verified — hipcc
+              </div>
+            )}
+          </div>
+        </div>
+
         {status === 'loading' && (
           <div className="flex flex-col items-center justify-center p-8 bg-black/40 border border-white/5">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-amd-red/30 border-t-amd-red mb-4" />

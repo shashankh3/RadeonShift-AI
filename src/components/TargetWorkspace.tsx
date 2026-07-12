@@ -9,6 +9,8 @@ import ModeBanner from './ModeBanner';
 import AuditCard from './AuditCard';
 import BenchmarkCard from './BenchmarkCard';
 import CodeDiff from './CodeDiff';
+import ComparisonPanel from './ComparisonPanel';
+import WhyAMDPanel from './WhyAMDPanel';
 
 interface TargetWorkspaceProps {
   isTranslating: boolean;
@@ -103,6 +105,20 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
     }
   };
 
+  const isWavefrontBug = cudaSource.includes('warpReduceSum');
+
+  let parsedLog: any = null;
+  try {
+    parsedLog = JSON.parse(auditLog);
+  } catch (e) {}
+  
+  const ptxRisks = parsedLog?.ptx_risks ?? [];
+  const wavefrontOpts = parsedLog?.wavefront_optimizations ?? [];
+  const structuredFindings = [
+    ...ptxRisks.filter((f: any) => typeof f === 'object' && f.severity),
+    ...wavefrontOpts.filter((f: any) => typeof f === 'object' && f.severity),
+  ];
+
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#040407]/74">
       <ModeBanner />
@@ -185,10 +201,11 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
         ) : (
           <div className="min-h-full p-4 sm:p-6 lg:p-8">
             {activeTab === 'code' && (
-              <>
+              <div className="flex flex-col gap-6">
                 <CodePanel code={rocmCode} />
                 <CodeDiff before={rocmCode} after={rocmCode} />
-              </>
+                {isWavefrontBug && <ComparisonPanel findings={structuredFindings} />}
+              </div>
             )}
             {activeTab === 'analytics' && (
               <>
@@ -197,6 +214,9 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
                 <VerificationGate verification={verification} />
                 <BackendStatusPanel />
                 <BenchmarkPanel />
+                <div className="mt-8">
+                  <WhyAMDPanel />
+                </div>
               </>
             )}
             {activeTab === 'telemetry' && <TelemetryPanel verification={verification} log={auditLog} scorecard={scorecard} />}

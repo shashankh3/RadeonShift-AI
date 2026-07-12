@@ -58,6 +58,30 @@ const DEMO_SNIPPETS = {
     softmax<<<blocks, threads>>>(d_input, d_output, size);
     return 0;
 }`
+  },
+  WavefrontBug: {
+    'kernel.cu': `__global__ void warpReduceSum(int* input, int* output, int n) {
+    int tid = threadIdx.x;
+    int lane = tid % 32;
+    int warpId = tid / 32;
+    int val = 0;
+
+    if (tid < n) {
+        val = input[tid];
+    }
+
+    for (int offset = 16; offset > 0; offset >>= 1) {
+        val += __shfl_down_sync(0xFFFFFFFF, val, offset);
+    }
+
+    if (lane == 0) {
+        output[warpId] = val;
+    }
+}`,
+    'main.cu': `int main() {
+    // Demo entry point
+    return 0;
+}`
   }
 };
 
@@ -146,6 +170,9 @@ export default function SourceEditor({ isTranslating, onMigrate }: SourceEditorP
         </button>
         <button onClick={() => setFiles(DEMO_SNIPPETS.Softmax)} className="rounded-full border border-white/20 bg-white/[0.02] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white/60 transition-all hover:border-amd-red hover:text-white hover:shadow-[0_0_15px_rgba(237,28,36,0.4)] active:scale-95">
           Demo: Softmax
+        </button>
+        <button onClick={() => setFiles(DEMO_SNIPPETS.WavefrontBug)} className="rounded-full border border-amd-red/50 bg-amd-red/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white transition-all hover:bg-amd-red/20 hover:shadow-[0_0_15px_rgba(237,28,36,0.6)] active:scale-95">
+          Demo: Wavefront Bug
         </button>
       </div>
 

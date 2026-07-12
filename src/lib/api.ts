@@ -1,4 +1,4 @@
-import { DEMO_HIP_OUTPUT, DEMO_AUDIT_FINDINGS, DEMO_BENCHMARK } from './demoData';
+import { DEMO_HIP_OUTPUT, DEMO_AUDIT_FINDINGS, DEMO_BENCHMARK, DEMO_WAVEFRONT_BUG_CUDA, DEMO_WAVEFRONT_BUG_FINDINGS, DEMO_RADEONSHIFT_FIXED_HIP } from './demoData';
 
 export interface ScorecardData {
   execution_mode: "ai_only" | "full_stack" | "demo_only";
@@ -160,8 +160,13 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     console.warn("AI Translation unavailable, using frontend emergency demo mode", err);
     
     let critical = 0, high = 0, medium = 0, low = 0, auto = 0;
-    const ptx = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "HIGH");
-    const wf = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "MEDIUM");
+    const isWavefrontBug = code.includes('warpReduceSum');
+    const ptx = isWavefrontBug 
+      ? DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH")
+      : DEMO_AUDIT_FINDINGS.filter(f => f.severity === "HIGH");
+    const wf = isWavefrontBug
+      ? DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "MEDIUM" || f.severity === "LOW")
+      : DEMO_AUDIT_FINDINGS.filter(f => f.severity === "MEDIUM");
     const all: any[] = [...ptx, ...wf];
     
     all.forEach(f => {
@@ -208,7 +213,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     };
 
     return {
-      rocm_code: DEMO_HIP_OUTPUT,
+      rocm_code: isWavefrontBug ? DEMO_RADEONSHIFT_FIXED_HIP : DEMO_HIP_OUTPUT,
       audit_log: JSON.stringify({
         ptx_risks: ptx,
         wavefront_optimizations: wf,
