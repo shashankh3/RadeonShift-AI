@@ -3,7 +3,7 @@
 ## 0:00 - The Hook & The Problem
 *Camera on speaker.*
 "Every enterprise right now is trying to get their hands on AMD MI300X hardware. But there's a massive bottleneck: Millions of lines of legacy NVIDIA CUDA code. Manual migration takes months. Simple AI wrappers hallucinate syntax.
-I'm [Your Name], and this is **RadeonShift AI** — an enterprise DevSecOps pipeline that migrates CUDA to ROCm with deterministic accuracy and peer-reviews it using a Mixture-of-Agents architecture."
+I'm [Your Name], and this is **RadeonShift AI** — an CUDA kernel migration assistant that migrates CUDA to ROCm with AI assistance and peer-reviews it using a Mixture-of-Agents architecture."
 
 ## 1:00 - Source Ingress & Telemetry
 *Screen share: TargetWorkspace UI.*
@@ -11,7 +11,7 @@ I'm [Your Name], and this is **RadeonShift AI** — an enterprise DevSecOps pipe
 
 ## 2:00 - The Translation Pipeline
 *Click Migrate. Show the loading overlay: HIPIFY -> AGENT A -> AGENT B -> SCORECARD.*
-"Under the hood, we don't trust an LLM to write syntax. We use deterministic \`hipify\` rules for a 100% accurate API mapping. 
+"Under the hood, we use Fireworks AI for the initial mapping and dual-agent architecture for semantic review. 
 But translation isn't optimization. That's where our Mixture-of-Agents comes in."
 
 ## 3:00 - MoA Scorecard Reveal
@@ -27,7 +27,7 @@ We ran two specialized agents in parallel:
 
 ## 4:30 - The ROI & Business Impact
 *Switch back to dashboard. Click 'Expand ROI' on the Cost Calculator.*
-"The business impact is undeniable. Manually migrating a 240-kernel repository costs over $140,000 and months of engineering time. RadeonShift AI does it for under $30 in compute. That is a 5,000x ROI, instantly unblocking AMD hardware adoption."
+"The business impact is undeniable. Manually migrating a 240-kernel repository costs over $140,000 and months of engineering time. RadeonShift AI does it for under $30 in compute. That is a Significant ROI, instantly unblocking AMD hardware adoption."
 
 ## 4:50 - Closing
 *Camera on speaker.*

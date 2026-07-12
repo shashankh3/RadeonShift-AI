@@ -1,6 +1,6 @@
 # Security Policy
 
-RadeonShift AI takes security seriously. As a DevSecOps tool that processes proprietary enterprise codebases and interacts with third-party AI APIs, maintaining a secure pipeline is our top priority.
+RadeonShift AI takes security seriously. As a kernel migration audit tool that processes proprietary codebases and interacts with third-party AI APIs, maintaining a secure pipeline is our top priority.
 
 ## Reporting a Vulnerability
 

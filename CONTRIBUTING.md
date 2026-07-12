@@ -1,6 +1,6 @@
 # Contributing to RadeonShift AI
 
-First off, thank you for considering contributing to RadeonShift AI! We aim to build the fastest, most deterministic migration path from NVIDIA CUDA to AMD ROCm, and community contributions to the translation rules, AI prompts, and developer tooling are highly valued.
+First off, thank you for considering contributing to RadeonShift AI! We aim to build the AI-assisted migration path from NVIDIA CUDA to AMD ROCm, and community contributions to the translation rules, AI prompts, and Developer tooling are highly valued.
 
 ## Branch Naming Convention
 

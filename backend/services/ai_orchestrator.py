@@ -101,8 +101,8 @@ If the code is perfectly clean with no issues, return exactly:
 
 Always return a valid JSON array, not an object."""
 
-    user_message = f"""[DETERMINISTIC CONTEXT — High Confidence]
-hipify-perl output:
+    user_message = f"""[AI Translation CONTEXT]
+Translated output:
 {hipify_output if hipify_output else "(not provided)"}
 
 Scanner findings:
@@ -178,13 +178,13 @@ Focus on:
 2. Grid/block dimension adjustments for wavefront-64
 3. Shared memory bank conflicts
 4. Occupancy optimization for MI300X compute units
-5. Any translation artifacts from hipify-perl that need manual correction
+5. Any translation artifacts that need manual correction
 
 Return findings in the same JSON schema as Agent A (severity, category, line, context, finding, fix, auto_fixable, patch).
 Always return a valid JSON array, not an object."""
 
-    user_message = f"""[DETERMINISTIC CONTEXT — High Confidence]
-hipify-perl output:
+    user_message = f"""[AI Translation CONTEXT]
+Translated output:
 {hipify_output if hipify_output else "(not provided)"}
 
 Scanner findings:

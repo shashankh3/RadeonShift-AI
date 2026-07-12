@@ -36,7 +36,7 @@ int main() {
 }`;
 
 const PIPELINE_STAGES = [
-  "Translating CUDA \u2192 HIP (hipify-perl)...",
+  "Translating CUDA \u2192 HIP (Fireworks AI)...",
   "Running static scanner (radeonshift_scanner.py)...",
   "Injecting MI300X hardware context into agents...",
   "Agent A (NVIDIA Purist) analyzing for lock-in patterns...",

@@ -13,7 +13,7 @@
 
 ## What RadeonShift Does
 
-1. **Translate** — Deterministic CUDA→HIP translation via AMD's `hipify-perl` logic (no LLM hallucination)
+1. **Translate** — AI translation via Fireworks with semantic migration audit
 2. **Audit** — Dual-agent AI audit (Fireworks AI) that catches AMD-specific correctness bugs
 3. **Verify** — Optionally compile and benchmark on real AMD Instinct MI300X hardware when connected
 
@@ -23,7 +23,7 @@
 
 | Capability | HIPIFY | RadeonShift |
 |---|---|---|
-| API renaming | ✅ | ✅ (via hipify-perl) |
+| API renaming | ✅ | ✅ (via AI translation) |
 | Semantic correctness audit | ❌ | ✅ (MoA dual-agent via Fireworks AI) |
 | Wavefront-64 detection | ❌ | ✅ |
 | Confidence score from real findings | ❌ | ✅ |
@@ -99,6 +99,16 @@ All data shown in the UI must be traceable to a clearly labeled source.
 | Benchmark | Live hardware, cached evidence, unavailable | `live` / `cached` / `unavailable` |
 | Telemetry | Live notebook only | `live` / `unavailable` |
 | GPU name | Live hardware only | Detected (online) / Offline / Unavailable |
+
+---
+
+## Truth Table
+
+- **Translation** can be live via Fireworks even if hardware is offline.
+- **Audit** can be live via Fireworks even if hardware is offline.
+- **Hardware verification** only exists when the AMD MI300X notebook is online.
+- **Cached benchmark evidence** is clearly labeled as prior evidence, not current execution.
+- **Demo mode** is explicitly labeled and never masquerades as live.
 
 ---
 
@@ -191,7 +201,7 @@ FIREWORKS_MODEL_AUDIT=accounts/fireworks/models/deepseek-v4-flash
 
 ## Pipeline Stages
 
-1. **Deterministic Translation** — LLM-based hipify translation via `/api/translate` → Fireworks AI
+1. **AI Translation** — LLM-based hipify translation via `/api/translate` → Fireworks AI
 2. **MoA Audit** — Agent A (NVIDIA Purist) + Agent B (AMD Optimizer) via `/api/audit` → Fireworks AI
 3. **Hardware Verification** *(optional)* — `hipcc` compile + benchmark + rocm-smi telemetry via notebook
 4. **Migration Report** *(when notebook connected)* — ZIP package with source, audit, benchmark, and summary

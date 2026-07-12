@@ -19,9 +19,9 @@ Enterprise AI workloads are facing massive bottlenecks due to a reliance on lega
 ---
 
 ## The Solution: RadeonShift AI
-RadeonShift AI is a deterministic Mixture of Agents (MoA) pipeline that translates CUDA to ROCm instantly and audits the architecture.
+RadeonShift AI is a AI-assisted CUDA kernel migration assistant that translates CUDA to ROCm instantly and audits the architecture.
 
-1. **Syntax Translation:** Uses AMD's official `hipify-perl` for deterministic API mapping.
+1. **Syntax Translation:** Uses Fireworks-hosted translation model for AI Translation.
 2. **MoA Audit:** Leverages DeepSeek-V4 to scan for PTX risks, hardcoded warp sizes, and AMD-specific optimizations.
 3. **Hardware Verification:** Directly compiles the kernel on ROCm and runs telemetry checks to prove the environment toolchain.
 
@@ -30,7 +30,7 @@ RadeonShift AI is a deterministic Mixture of Agents (MoA) pipeline that translat
 ## Architecture
 
 1. **Frontend (Next.js Edge):** Manages user state and renders the dynamic dashboard.
-2. **AI Translation Layer (Vercel Edge):** Orchestrates the deterministic translation and Mixture-of-Agents audit via Fireworks AI, operating independently of hardware availability.
+2. **AI Translation Layer (Vercel Edge):** Orchestrates the AI translation and Mixture-of-Agents audit via Fireworks AI, operating independently of hardware availability.
 3. **Hardware Engine (FastAPI via Pinggy):** An optional bare-metal ROCm layer that compiles the generated kernel via `hipcc` and polls `rocm-smi` for live telemetry and execution benchmarks.
 
 ---
@@ -55,7 +55,7 @@ Before translation begins, the platform awaits the CUDA payload. The user inputs
 ## Step 2: HIP Optimization Core
 ![height:350px](./docs/step2.png)
 
-Upon engaging the ROCm translation pass, the core converts the syntax. The resulting C++ HIP code (`target_kernel.hip.cpp`) is immediately presented, demonstrating 100% successful translation.
+Upon engaging the ROCm translation pass, the core converts the syntax. The resulting C++ HIP code (`target_kernel.hip.cpp`) is immediately presented, demonstrating generated HIP translation.
 
 ---
 
@@ -82,7 +82,7 @@ Finally, the translated HIP code is natively compiled and executed on the MI300X
 
 ## Business Value & ROI
 
-**The 5,000x ROI Model**
+**The Significant ROI Model**
 - **Manual Migration:** 244 Kernels × 4 hrs = 976 Engineer-Hours (~$146,000, based on $150/hr senior GPU engineer rate)
 - **RadeonShift Migration:** 244 Kernels × 0.12 compute cost = ~$29
 - **Time Savings:** Months reduced to minutes.
@@ -107,7 +107,7 @@ Finally, the translated HIP code is natively compiled and executed on the MI300X
 2. **Defensive APIs:** Built robust frontend parsing to gracefully handle sudden JSON schema changes.
 3. **CORS Routing:** Bypassed strict mixed-content blocks by tunneling through Pinggy and Next.js `rewrites()`.
 4. **Transparent Debugging:** Overhauled error handling to surface remote Python stack traces in the UI.
-5. **Deterministic AI Prompts:** Forced LLMs to generate explicit confirmations for clean code, preventing UI state collapses.
+5. **Structured AI Prompts:** Forced LLMs to generate explicit confirmations for clean code, preventing UI state collapses.
 
 ---
 

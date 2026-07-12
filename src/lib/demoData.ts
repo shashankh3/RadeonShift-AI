@@ -77,7 +77,7 @@ export const DEMO_REPORT = {
     status: "complete",
     input_language: "CUDA",
     output_language: "HIP",
-    tool: "hipify-perl",
+    tool: "fireworks_live",
     output: DEMO_HIP_OUTPUT
   },
   audit: {

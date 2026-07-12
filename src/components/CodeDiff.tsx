@@ -17,7 +17,7 @@ export default function CodeDiff({ before, after }: CodeDiffProps) {
       {/* Left: raw hipify output */}
       <div>
         <div className="text-xs font-black uppercase tracking-widest text-gray-500 mb-1 px-1">
-          Raw hipify-perl output
+          Generated HIP translation
         </div>
         <div className="bg-gray-950 rounded p-3 text-xs font-mono overflow-x-auto">
           {Array.from({ length: maxLen }, (_, i) => (

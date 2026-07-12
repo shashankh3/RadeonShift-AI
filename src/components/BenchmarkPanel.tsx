@@ -42,7 +42,7 @@ export default function BenchmarkPanel() {
               Hardware Benchmark
             </div>
             <h3 className="text-xl font-black uppercase italic tracking-[-0.04em] text-white">
-              MI300X Benchmark Mode
+              MI300X BENCHMARK MODE
             </h3>
             <p className="text-xs font-medium text-white/50 uppercase tracking-widest mt-1">
               Runs on AMD hardware when notebook is online

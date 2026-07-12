@@ -1,11 +1,11 @@
 # RadeonShift AI Architecture
 
 ## Overview
-RadeonShift AI is an enterprise-grade DevSecOps pipeline designed to autonomously migrate, peer-review, and optimize legacy NVIDIA CUDA code for AMD MI300X hardware. 
+RadeonShift AI is an CUDA kernel migration assistant designed to autonomously migrate, peer-review, and optimize legacy NVIDIA CUDA code for AMD MI300X hardware. 
 
 The system relies on a two-phased approach:
-1. **Deterministic Translation:** Leveraging AMD's \`hipify-perl\` logic for 100% syntactically accurate baseline translations.
-2. **Mixture-of-Agents (MoA) Orchestration:** Utilizing specialized LLM agents to review the deterministic output for hardware-specific optimizations and architectural lock-in risks.
+1. **AI Translation:** Leveraging Fireworks AI for semantic initial baseline translations.
+2. **Mixture-of-Agents (MoA) Orchestration:** Utilizing specialized LLM agents to review the AI translated output for hardware-specific optimizations and architectural lock-in risks.
 
 ## System Diagram
 
@@ -25,7 +25,7 @@ The system relies on a two-phased approach:
         |
         +---> [ FastAPI Backend (Pinggy Tunnel) ] (Python, bare-metal optional)
                     |
-                    +--> [ Deterministic HIPIFY Pass & Compile ]
+                    +--> [ AI HIPIFY Pass & Compile ]
                     |
                     +--> [ AMD MI300X Hardware Telemetry ]
 ```
@@ -40,7 +40,7 @@ The Next.js backend leverages Vercel Serverless/Edge functions to orchestrate th
 The FastAPI backend acts as an optional but powerful hardware execution layer. Hosted on an AMD MI300X notebook via Pinggy, it receives the code, performs exact `hipify` syntax translation, executes bare-metal compilation (`hipcc`), and returns live ROCm hardware telemetry.
 
 ## Translation Pipeline
-RadeonShift AI does not use an LLM for the initial translation. Using an LLM for syntax translation introduces hallucinations and non-deterministic behavior. Instead, we use regex-based \`hipify\` rules to ensure mathematically identical API mappings (e.g., \`cudaMalloc\` -> \`hipMalloc\`), and reserve the LLM strictly for architectural review. **This is our core moat.**
+RadeonShift AI uses Fireworks AI for translation and architectural review.**
 
 ## Mixture of Agents (MoA)
 Once the code is translated, two agents review the code in parallel:

@@ -23,7 +23,7 @@ export default function VerificationGate({ verification }: VerificationGateProps
   let bgClass = "bg-gray-500/10";
 
   if (status === "compile_verified") {
-    Title = "COMPILE VERIFIED";
+    Title = "MI300X BENCHMARK MODE";
     Subtext = "HIP source compiled through hipcc";
     Icon = ShieldCheck;
     colorClass = "text-emerald-400";

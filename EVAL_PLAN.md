@@ -29,7 +29,7 @@ RadeonShift uses a multi-layer verification approach. Evaluation is separated by
 ### Benchmark Validation
 - Compile success rate across test set (via `hipcc` on MI300X)
 - Correctness pass rate after fixes applied
-- Performance delta: fixed HIP vs raw hipify-perl output
+- Performance delta: fixed HIP vs Generated HIP translation
 - Throughput (GB/s) and % of MI300X peak bandwidth
 
 ---
@@ -39,7 +39,7 @@ RadeonShift uses a multi-layer verification approach. Evaluation is separated by
 | Mode | What is evaluated |
 |---|---|
 | `full_stack` | Full pipeline including compile + benchmark |
-| `ai_only` | AI translation + audit only, no hardware |
+| `ai_only` | AI Translation + audit only, no hardware |
 | `demo_only` | Demo artifact integrity, not real evaluation |
 
 ---
