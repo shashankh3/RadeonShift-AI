@@ -165,7 +165,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       ? DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH")
       : DEMO_AUDIT_FINDINGS.filter(f => f.severity === "HIGH");
     const wf = isWavefrontBug
-      ? DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "MEDIUM" || f.severity === "LOW")
+      ? DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "MEDIUM")
       : DEMO_AUDIT_FINDINGS.filter(f => f.severity === "MEDIUM");
     const all: any[] = [...ptx, ...wf];
     
