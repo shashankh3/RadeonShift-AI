@@ -87,21 +87,40 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       console.warn("Audit API failed, continuing with empty audit");
     }
 
-    const ptx = auditLog.ptx_risks || [];
-    const wf = auditLog.wavefront_optimizations || [];
+    // Normalize: ensure both arrays contain only well-formed objects (never raw strings)
+    const normalizeFindings = (arr: any[]): any[] => {
+      if (!Array.isArray(arr)) return [];
+      return arr.map((item: any) => {
+        if (typeof item === 'string') {
+          return { severity: 'MEDIUM', category: 'AI Finding', finding: item, fix: '', auto_fixable: false };
+        }
+        if (typeof item === 'object' && item !== null) {
+          return {
+            severity: item.severity || 'MEDIUM',
+            category: item.category || 'AI Finding',
+            line: item.line ?? null,
+            context: item.context ?? null,
+            finding: item.finding || String(item),
+            fix: item.fix || '',
+            auto_fixable: Boolean(item.auto_fixable),
+            patch: typeof item.patch === 'string' ? item.patch : undefined,
+          };
+        }
+        return null;
+      }).filter(Boolean);
+    };
+
+    const ptx = normalizeFindings(Array.isArray(auditLog.ptx_risks) ? auditLog.ptx_risks : []);
+    const wf = normalizeFindings(Array.isArray(auditLog.wavefront_optimizations) ? auditLog.wavefront_optimizations : []);
     const allFindings = [...ptx, ...wf];
     
     let critical = 0, high = 0, medium = 0, low = 0, auto = 0;
     allFindings.forEach(f => {
-      if (typeof f === 'string') {
-         medium++;
-      } else {
-        if (f.severity === 'CRITICAL') critical++;
-        else if (f.severity === 'HIGH') high++;
-        else if (f.severity === 'MEDIUM') medium++;
-        else low++;
-        if (f.auto_fixable) auto++;
-      }
+      if (f.severity === 'CRITICAL') critical++;
+      else if (f.severity === 'HIGH') high++;
+      else if (f.severity === 'MEDIUM') medium++;
+      else low++;
+      if (f.auto_fixable) auto++;
     });
 
     let conf = 100 - (25 * critical) - (20 * high) - (5 * medium) - (1 * low);

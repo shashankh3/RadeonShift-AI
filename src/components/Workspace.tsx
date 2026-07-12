@@ -5,6 +5,7 @@ import SourceEditor from './SourceEditor';
 import TargetWorkspace from './TargetWorkspace';
 import { translateCode } from '@/lib/api';
 import CostCalculator from './CostCalculator';
+import { ErrorBoundary } from './ErrorBoundary';
 
 export default function Workspace() {
   const [isTranslating, setIsTranslating] = useState(false);
@@ -47,15 +48,17 @@ export default function Workspace() {
 
       <section className="relative z-10 min-h-0 overflow-hidden flex flex-col">
         <div className="flex-1 min-h-0">
-          <TargetWorkspace
-            isTranslating={isTranslating}
-            hasTranslated={hasTranslated}
-            rocmCode={rocmCode}
-            auditLog={auditLog}
-            verification={verification}
-            scorecard={scorecard}
-          />
-        </div>
+            <ErrorBoundary fallbackLabel="Translation Output Error">
+              <TargetWorkspace
+                isTranslating={isTranslating}
+                hasTranslated={hasTranslated}
+                rocmCode={rocmCode}
+                auditLog={auditLog}
+                verification={verification}
+                scorecard={scorecard}
+              />
+            </ErrorBoundary>
+          </div>
         <div className="shrink-0 border-t border-white/10 bg-[#040407] p-4">
           <CostCalculator />
         </div>
