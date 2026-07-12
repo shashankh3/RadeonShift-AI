@@ -198,3 +198,92 @@ export const DEMO_WAVEFRONT_BUG_FINDINGS = [
     patch: "__shfl_down_sync(0xFFFFFFFFFFFFFFFF, val, offset)"
   }
 ] as const;
+
+export const DEMO_ADVANCED_KERNEL_CUDA = `#include <iostream>
+#include <cuda_runtime.h>
+#include <cooperative_groups.h>
+#include <cuda/memcpy_async>
+#include <mma.h>
+
+namespace cg = cooperative_groups;
+using namespace nvcuda;
+
+// Advanced Reduction Kernel with WMMA and Async Copy
+__global__ void advancedReduce(const float4* __restrict__ g_idata, float* g_odata, unsigned int n) {
+    // Undefined temp storage reference
+    extern __shared__ float sdata_temp[];
+
+    unsigned int tid = threadIdx.x;
+    
+    // Cooperative groups async copy (unsupported in HIP)
+    cg::memcpy_async(cg::this_thread_block(), sdata_temp, g_idata, sizeof(float4) * blockDim.x);
+    cg::wait(cg::this_thread_block());
+
+    // WMMA / Tensor Core fragment load (requires rocWMMA rewrite)
+    wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major> a_frag;
+    wmma::load_matrix_sync(a_frag, (half*)g_idata, 16);
+
+    if (tid == 0) {
+        g_odata[blockIdx.x] = sdata_temp[0];
+    }
+}`;
+
+export const DEMO_ADVANCED_KERNEL_HIP = `#include <iostream>
+#include <hip/hip_runtime.h>
+#include <hip/hip_cooperative_groups.h>
+// #include <cuda/memcpy_async> // Removed or commented out by naive translation
+// #include <mma.h> // Removed or commented out
+
+namespace cg = cooperative_groups;
+// using namespace nvcuda;
+
+__global__ void advancedReduce(const float4* __restrict__ g_idata, float* g_odata, unsigned int n) {
+    extern __shared__ float sdata_temp[];
+
+    unsigned int tid = threadIdx.x;
+    
+    // HIP does not support cg::memcpy_async
+    cg::memcpy_async(cg::this_thread_block(), sdata_temp, g_idata, sizeof(float4) * blockDim.x);
+    cg::wait(cg::this_thread_block());
+
+    // wmma namespace undefined in naive HIP translation without rocWMMA
+    wmma::fragment<wmma::matrix_a, 16, 16, 16, _Float16, wmma::row_major> a_frag;
+    wmma::load_matrix_sync(a_frag, (_Float16*)g_idata, 16);
+
+    if (tid == 0) {
+        g_odata[blockIdx.x] = sdata_temp[0];
+    }
+}`;
+
+export const DEMO_ADVANCED_KERNEL_FINDINGS = [
+  {
+    severity: "CRITICAL",
+    category: "Incomplete Source / Compile Risk",
+    line: 13,
+    context: "extern __shared__ float sdata_temp[];",
+    finding: "Undefined temp storage 'sdata_temp' detected. This indicates an incomplete source file or missing header that will fail to compile.",
+    fix: "Ensure all shared memory arrays are properly defined and bounded before migration.",
+    auto_fixable: false,
+    patch: null
+  },
+  {
+    severity: "CRITICAL",
+    category: "Unsupported HIP Feature",
+    line: 18,
+    context: "cg::memcpy_async(cg::this_thread_block(), ...)",
+    finding: "cooperative_groups async copy (memcpy_async/wait) is NOT supported in HIP.",
+    fix: "Requires manual redesign using standard shared memory loads or AMD-specific async copy built-ins if supported by target architecture.",
+    auto_fixable: false,
+    patch: null
+  },
+  {
+    severity: "CRITICAL",
+    category: "Tensor Core / WMMA Portability",
+    line: 22,
+    context: "wmma::fragment<wmma::matrix_a, ...>",
+    finding: "CUDA WMMA / Tensor Core patterns detected. Direct translation to HIP is unsafe and often fails to compile without rocWMMA.",
+    fix: "Manual redesign required: Rewrite using AMD rocWMMA library for matrix core acceleration.",
+    auto_fixable: false,
+    patch: null
+  }
+] as const;

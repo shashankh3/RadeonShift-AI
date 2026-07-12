@@ -17,6 +17,8 @@
 2. **Audit** — Dual-agent AI audit (Fireworks AI) that catches AMD-specific correctness bugs
 3. **Verify** — Optionally compile and benchmark on real AMD Instinct MI300X hardware when connected
 
+*RadeonShift can also detect advanced CUDA kernels that require AMD-specific redesign rather than direct translation (e.g., unsupported cooperative groups async copy and WMMA patterns).*
+
 ---
 
 ## Why Not Just Use HIPIFY?

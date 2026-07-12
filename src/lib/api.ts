@@ -1,4 +1,4 @@
-import { DEMO_HIP_OUTPUT, DEMO_AUDIT_FINDINGS, DEMO_BENCHMARK, DEMO_WAVEFRONT_BUG_CUDA, DEMO_WAVEFRONT_BUG_FINDINGS, DEMO_RADEONSHIFT_FIXED_HIP } from './demoData';
+import { DEMO_HIP_OUTPUT, DEMO_AUDIT_FINDINGS, DEMO_BENCHMARK, DEMO_WAVEFRONT_BUG_CUDA, DEMO_WAVEFRONT_BUG_FINDINGS, DEMO_RADEONSHIFT_FIXED_HIP, DEMO_ADVANCED_KERNEL_FINDINGS, DEMO_ADVANCED_KERNEL_HIP } from './demoData';
 
 export interface ScorecardData {
   execution_mode: "ai_only" | "full_stack" | "demo_only";
@@ -113,17 +113,44 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     const ptx = normalizeFindings(Array.isArray(auditLog.ptx_risks) ? auditLog.ptx_risks : []);
     const wf = normalizeFindings(Array.isArray(auditLog.wavefront_optimizations) ? auditLog.wavefront_optimizations : []);
     const allFindings = [...ptx, ...wf];
+
+    // Deterministic Rules Engine
+    let hasCgAsync = false;
+    let hasWmma = false;
+    let hasIncomplete = false;
+
+    if (code.includes('<cuda/memcpy_async>') || code.includes('cuda::memcpy_async') || code.includes('cg::memcpy_async')) {
+      hasCgAsync = true;
+      allFindings.push({ severity: "CRITICAL", category: "Unsupported HIP Feature", finding: "cooperative_groups async copy (memcpy_async/wait) is NOT supported in HIP.", fix: "Requires manual redesign using standard shared memory loads or AMD-specific async copy built-ins if supported by target architecture.", auto_fixable: false });
+    }
+    
+    if (code.includes('nvcuda') || code.includes('wmma::fragment') || code.includes('wmma::mma_sync') || code.includes('wmma::load_matrix_sync') || code.includes('wmma::store_matrix_sync') || code.includes('<mma.h>')) {
+      hasWmma = true;
+      allFindings.push({ severity: "CRITICAL", category: "Tensor Core / WMMA Portability", finding: "CUDA WMMA / Tensor Core patterns detected. Direct translation to HIP is unsafe and often fails to compile without rocWMMA.", fix: "Manual redesign required: Rewrite using AMD rocWMMA library for matrix core acceleration.", auto_fixable: false });
+    }
+
+    if (code.includes('sdata_temp')) {
+      hasIncomplete = true;
+      allFindings.push({ severity: "CRITICAL", category: "Incomplete Source / Compile Risk", finding: "Undefined temp storage 'sdata_temp' detected. This indicates an incomplete source file or missing header that will fail to compile.", fix: "Ensure all shared memory arrays are properly defined and bounded before migration.", auto_fixable: false });
+    }
     
     let critical = 0, high = 0, medium = 0, low = 0, auto = 0;
+    let hasRedesignRequired = false;
     allFindings.forEach(f => {
       if (f.severity === 'CRITICAL') critical++;
       else if (f.severity === 'HIGH') high++;
       else if (f.severity === 'MEDIUM') medium++;
       else low++;
       if (f.auto_fixable) auto++;
+      if (f.auto_fixable === false || f.severity === 'CRITICAL') hasRedesignRequired = true;
     });
 
     let conf = 100 - (25 * critical) - (20 * high) - (5 * medium) - (1 * low);
+    if (hasIncomplete && conf > 39) conf = 39;
+    else if (hasWmma && conf > 44) conf = 44;
+    else if (hasCgAsync && conf > 49) conf = 49;
+    else if (hasRedesignRequired && conf === 100) conf = 80; // Hard cap below 100 if any critical or redesign issue
+
     if (conf < 0) conf = 0;
 
     const isHwOnline = hwData?.hardware?.status === 'online';
@@ -180,13 +207,24 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     
     let critical = 0, high = 0, medium = 0, low = 0, auto = 0;
     const isWavefrontBug = code.includes('warpReduceSum');
-    const ptx = isWavefrontBug 
-      ? DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH")
-      : DEMO_AUDIT_FINDINGS.filter(f => f.severity === "HIGH");
-    const wf = isWavefrontBug
-      ? DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "MEDIUM")
-      : DEMO_AUDIT_FINDINGS.filter(f => f.severity === "MEDIUM");
+    const isAdvancedKernel = code.includes('advancedReduce');
+    
+    let ptx: any[] = [];
+    let wf: any[] = [];
+    
+    if (isAdvancedKernel) {
+      ptx = DEMO_ADVANCED_KERNEL_FINDINGS.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH") as any[];
+      wf = DEMO_ADVANCED_KERNEL_FINDINGS.filter(f => f.severity === "MEDIUM") as any[];
+    } else if (isWavefrontBug) {
+      ptx = DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "CRITICAL" || f.severity === "HIGH") as any[];
+      wf = DEMO_WAVEFRONT_BUG_FINDINGS.filter(f => f.severity === "MEDIUM") as any[];
+    } else {
+      ptx = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "HIGH") as any[];
+      wf = DEMO_AUDIT_FINDINGS.filter(f => f.severity === "MEDIUM") as any[];
+    }
+    
     const all: any[] = [...ptx, ...wf];
+    let hasRedesignRequired = false;
     
     all.forEach(f => {
       if (f.severity === 'CRITICAL') critical++;
@@ -194,9 +232,13 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
       else if (f.severity === 'MEDIUM') medium++;
       else low++;
       if (f.auto_fixable) auto++;
+      if (f.auto_fixable === false || f.severity === 'CRITICAL') hasRedesignRequired = true;
     });
 
     let conf = 100 - (25 * critical) - (20 * high) - (5 * medium) - (1 * low);
+    if (isAdvancedKernel) conf = 39; // Caps for advanced kernel
+    else if (hasRedesignRequired && conf === 100) conf = 80;
+    
     if (conf < 0) conf = 0;
 
     const scorecard: ScorecardData = {
@@ -232,7 +274,7 @@ export async function translateCode(code: string): Promise<TranslationResponse> 
     };
 
     return {
-      rocm_code: isWavefrontBug ? DEMO_RADEONSHIFT_FIXED_HIP : DEMO_HIP_OUTPUT,
+      rocm_code: isAdvancedKernel ? DEMO_ADVANCED_KERNEL_HIP : (isWavefrontBug ? DEMO_RADEONSHIFT_FIXED_HIP : DEMO_HIP_OUTPUT),
       audit_log: JSON.stringify({
         ptx_risks: ptx,
         wavefront_optimizations: wf,

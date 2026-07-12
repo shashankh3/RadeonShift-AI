@@ -381,7 +381,9 @@ function AnalyticsPanel({ log }: { log: string }) {
               <p className="text-[15px] font-medium leading-7 text-white/90 border-l border-white/20 pl-6">
                 {score >= 80 
                   ? "Code is highly portable. Ready for AMD hardware deployment." 
-                  : "Manual optimizations or syntax revisions suggested before deployment."}
+                  : score >= 50
+                    ? "Manual optimizations or syntax revisions suggested before deployment."
+                    : "Manual redesign required. Direct HIP translation is not sufficient."}
               </p>
             </div>
           </div>
