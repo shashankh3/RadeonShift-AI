@@ -11,6 +11,18 @@
 
 ---
 
+## Judge Demo Path
+
+1. Click **Hero Demo: Wavefront-64 Bug** in the Source Ingress panel.
+2. Click **Migrate to ROCm**.
+3. Compare **Plain Translation vs RadeonShift** to see the semantic gap.
+4. Open **Architecture Analytics** to inspect audit findings and readiness score.
+5. Point out provenance labels: **live**, **cached**, **unavailable**, or **demo**.
+
+> One-line takeaway: **HIPIFY changes syntax. RadeonShift catches AMD migration bugs.**
+
+---
+
 ## What RadeonShift Does
 
 1. **Translate** — AI translation via Fireworks with semantic migration audit
