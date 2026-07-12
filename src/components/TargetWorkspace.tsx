@@ -78,6 +78,9 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
         headers: { 'Content-Type': 'application/json', 'X-Pinggy-No-Screen': 'true' },
         body: JSON.stringify({ cuda_code: cudaSource })
       });
+      if (!response.ok) {
+        throw new Error('Backend unavailable for zip download');
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -86,7 +89,16 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Report generation failed', err);
+      console.warn('Report generation failed, falling back to DEMO_REPORT JSON', err);
+      import('../lib/demoData').then(({ DEMO_REPORT }) => {
+        const blob = new Blob([JSON.stringify(DEMO_REPORT, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'RadeonShift_Migration_Report_demo.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
     }
   };
 
@@ -187,10 +199,15 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
             )}
             {activeTab === 'telemetry' && <TelemetryPanel verification={verification} log={auditLog} />}
             {hasTranslated && (
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end items-center gap-4">
+                {verification?.demo_mode && (
+                  <div className="text-xs text-yellow-500 font-medium animate-pulse">
+                    ⚠️ Using offline demo artifacts
+                  </div>
+                )}
                 <button
                   onClick={handleDownloadReport}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded transition-colors"
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2 rounded transition-colors cursor-pointer"
                 >
                   <Download className="h-4 w-4" />
                   Download Migration Report (.zip)

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-type Mode = 'live' | 'fallback' | 'loading';
+type Mode = 'live' | 'fallback' | 'emergency' | 'loading';
 
 export default function ModeBanner() {
   const [mode, setMode] = useState<Mode>('loading');
@@ -14,6 +14,10 @@ export default function ModeBanner() {
         const res = await fetch('/pinggy/health', {
           headers: { 'X-Pinggy-No-Screen': 'true' }
         });
+        if (!res.ok) {
+          setMode('emergency');
+          return;
+        }
         const data = await res.json();
         const src = data.source ?? '';
         if (src === 'live_rocm_smi') {
@@ -23,7 +27,7 @@ export default function ModeBanner() {
           setMode('fallback');
         }
       } catch {
-        setMode('fallback');
+        setMode('emergency');
       }
     };
 
@@ -38,6 +42,15 @@ export default function ModeBanner() {
     return (
       <div className="w-full py-2 px-4 text-sm font-medium bg-green-900/50 text-green-300 border-b border-green-700">
         🟢 Live AMD Hardware Connected — {hardwareInfo}
+      </div>
+    );
+  }
+
+  if (mode === 'emergency') {
+    return (
+      <div className="w-full py-2 px-4 text-sm font-medium bg-yellow-900/50 text-yellow-300 border-b border-yellow-700 flex flex-col items-center justify-center text-center">
+        <div>🟡 Emergency Demo Mode — Backend Offline</div>
+        <div className="text-xs opacity-80 mt-1">🧠 Using preloaded RadeonShift demo artifacts</div>
       </div>
     );
   }

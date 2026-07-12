@@ -73,6 +73,12 @@ For demo environments without LLM access, set `USE_MOCK_AI=true` in the backend 
 
 ---
 
+## Emergency Demo Mode
+
+If the remote AMD notebook or tunnel is unavailable, RadeonShift automatically falls back to a frontend-only emergency demo mode. This preserves the full UX with preloaded translation, audit, diff, benchmark, and report artifacts so the product remains demonstrable under infrastructure failure.
+
+---
+
 ## Current Scope (v1.0)
 
 **What RadeonShift validates:**
