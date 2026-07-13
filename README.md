@@ -25,9 +25,10 @@
 
 ## What RadeonShift Does
 
-1. **Translate** — AI translation via Fireworks with semantic migration audit
-2. **Audit** — Dual-agent AI audit (Fireworks AI) that catches AMD-specific correctness bugs
-3. **Verify** — Optionally compile-check generated HIP and run trusted benchmark kernels on real AMD Instinct MI300X hardware when connected
+1. **Audit (Layer 1) — Deterministic Risk Detection** — Hardcoded scanners check for known AMD portability risks (warp-size, PTX, WMMA) before AI is trusted.
+2. **Translate & Audit (Layer 2) — AI Analysis** — AI translation via Fireworks with semantic MoA (Mixture-of-Agents) dual-agent audit.
+3. **Score & Explain** — Computes a readiness score based on findings, automatically capping it for critical risks and displaying clear score logic.
+4. **Verify** — Optionally compile-check generated HIP and run trusted benchmark kernels on real AMD Instinct MI300X hardware when connected.
 
 *RadeonShift can also detect advanced CUDA kernels that require AMD-specific redesign rather than direct translation (e.g., unsupported cooperative groups async copy and WMMA patterns).*
 
@@ -43,8 +44,9 @@
 | Confidence score from real findings | ❌ | ✅ |
 | Compile on AMD hardware | ❌ | ✅ (when notebook connected) |
 | Benchmark with telemetry | ❌ | ✅ (when notebook connected) |
-| Migration report | ❌ | ✅ |
+| Architecture Analytics UI | ❌ | ✅ (Separates Deterministic vs AI findings) |
 | Works without hardware | ❌ | ✅ (AI-Only Mode) |
+| Offline Demo Fallback | ❌ | ✅ (Via `NEXT_PUBLIC_DEMO_MODE`) |
 | Graceful degradation | ❌ | ✅ |
 
 ---
@@ -107,9 +109,9 @@ flowchart LR
 |---|---|---|---|---|
 | 🟢 **Full Stack** | Live (Fireworks AI) | Live (Fireworks AI) | Live (MI300X hardware) | Live (rocm-smi) |
 | 🟡 **AI-Only** | Live (Fireworks AI) | Live (Fireworks AI) | Cached evidence / Unavailable | Unavailable |
-| 🟠 **Demo Only** | Demo artifact | Demo artifact | Cached evidence | Unavailable |
+| 🟠 **Demo Only** | Offline static demo artifact | Offline static demo artifact | Offline static sample | Offline static sample |
 
-> The mode is detected automatically via `/pinggy/health` polling. ModeBanner updates every 30 seconds.
+> The mode is detected automatically via `/pinggy/health` polling. You can also force Demo Mode locally by setting `NEXT_PUBLIC_DEMO_MODE=true` in your `.env`.
 
 ---
 
@@ -164,15 +166,14 @@ It is never claimed to be a live result.
 
 ---
 
-## Emergency Demo Mode
+## Emergency / Offline Demo Mode
 
-Activated automatically when Fireworks AI is also unreachable (both AI and hardware down):
+Activated automatically when Fireworks AI is unreachable, or forced locally by setting `NEXT_PUBLIC_DEMO_MODE=true`:
 
-- Returns preloaded `DEMO_HIP_OUTPUT` (warpReduce kernel with fixes applied)
-- Returns `DEMO_AUDIT_FINDINGS` (1 HIGH + 1 MEDIUM finding from demo kernel)
-- Scorecard `execution_mode` is set to `demo_only`
-- All displayed data is labeled as demo artifacts
-- Report downloads as `RadeonShift_Migration_Report_demo.json`
+- Bypasses the backend and returns a guaranteed static fallback `wavefront_bug_sample.json`.
+- Displays the full product flow (Deterministic Findings, AI Analysis, Score Logic, Provenance labels).
+- Scorecard `execution_mode` is set to `demo_only`, and a yellow "⚠️ Demo Mode (Static Sample)" badge appears.
+- All displayed data is explicitly labeled as a static sample.
 
 ---
 

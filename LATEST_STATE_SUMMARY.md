@@ -11,6 +11,7 @@ RadeonShift AI is a three-layer system:
 | Layer | Host | Always Available |
 |---|---|---|
 | Frontend | Vercel (Next.js 16) | Yes |
+| Deterministic Risk Engine | Next.js (Local/Browser) + FastAPI (Backend) | Yes |
 | AI Translation & Audit | Vercel Serverless API Routes → Fireworks AI | Yes (when `FIREWORKS_API_KEY` is set) |
 | Hardware Verification | FastAPI backend on AMD MI300X notebook via Pinggy | No — optional |
 
@@ -20,9 +21,10 @@ RadeonShift AI is a three-layer system:
 
 When `FIREWORKS_API_KEY` is configured in Vercel:
 
+- ✅ Deterministic architecture risk detection (runs locally before AI)
 - ✅ CUDA → HIP translation (via `/api/translate` → Fireworks AI)
 - ✅ MoA dual-agent audit (via `/api/audit` → Fireworks AI)
-- ✅ Audit confidence score computed from real findings
+- ✅ Audit confidence score computed from real findings (with automatic score capping and explanation text)
 - ✅ Translation latency measured and displayed
 - ✅ ModeBanner reports `ai_only` when notebook is offline
 - ✅ Emergency demo fallback if Fireworks itself fails
@@ -57,11 +59,11 @@ When the AMD notebook is offline:
 
 ## What Is Demo-Only
 
-Activated only when both Fireworks AI and the notebook are unreachable:
+Activated automatically when both Fireworks AI and the notebook are unreachable, or explicitly forced via `NEXT_PUBLIC_DEMO_MODE=true`:
 
-- 🎭 `DEMO_HIP_OUTPUT` — warpReduce kernel with warpSize fix applied
-- 🎭 `DEMO_AUDIT_FINDINGS` — 1 HIGH (warpSize=32) + 1 MEDIUM (offset=16)
-- 🎭 `DEMO_REPORT` — static JSON with demo metadata
+- 🎭 Bypasses backend and loads `wavefront_bug_sample.json`
+- 🎭 Contains deterministic findings, AI findings, score logic, and metrics
+- 🎭 Displays a "⚠️ Demo Mode (Static Sample)" badge in the UI
 - 🎭 Report downloads as `RadeonShift_Migration_Report_demo.json`
 
 ---
@@ -88,8 +90,9 @@ Activated only when both Fireworks AI and the notebook are unreachable:
 ### Data Layer
 | File | Responsibility |
 |---|---|
-| `src/lib/api.ts` | `translateCode()` + `runBenchmark()` + `ScorecardData` interface |
-| `src/lib/demoData.ts` | `DEMO_HIP_OUTPUT`, `DEMO_AUDIT_FINDINGS`, `DEMO_BENCHMARK`, `DEMO_REPORT` |
+| `src/lib/api.ts` | `translateCode()` + `runBenchmark()` + Demo Mode logic + `ScorecardData` interface |
+| `src/lib/demoData.ts` | Fallback data structures |
+| `src/lib/deterministic_detectors.ts` | Client-side rule engine for AMD portability risks |
 
 ### Backend (Optional — AMD Notebook)
 | File | Responsibility |
@@ -97,6 +100,7 @@ Activated only when both Fireworks AI and the notebook are unreachable:
 | `backend/main.py` | FastAPI app entrypoint |
 | `backend/api/routes.py` | `/health`, `/translate`, `/benchmark/*`, `/report`, `/report/zip` endpoints |
 | `backend/services/ai_orchestrator.py` | MoA orchestration for backend/CI path |
+| `backend/services/deterministic_detectors.py` | Standalone rule-based portability scanner |
 | `backend/hero_kernels/` | CUDA + HIP reference kernels |
 
 ---
