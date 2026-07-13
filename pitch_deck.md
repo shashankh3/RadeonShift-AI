@@ -103,14 +103,19 @@ RadeonShift's Deterministic Rules Engine catches unsupported architectures befor
 
 ---
 
-## Step 3a: Score Capping & Logic
-<style scoped>p, li, strong { font-size: 18px; line-height: 1.1; margin-bottom: 6px; } h2 { font-size: 32px; }</style>
+## Step 3a: Score Capping & Logic (1/2)
+<style scoped>p, li, strong { font-size: 22px; line-height: 1.3; } h2 { font-size: 32px; }</style>
 
 **Correctness over Completeness:**
 Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
 
 **Score Capping:**
 Drops readiness score to < 50% automatically when CRITICAL or HIGH deterministic findings are present, discouraging unsafe architecture conversions from being treated as ready.
+
+---
+
+## Step 3a: Score Capping & Logic (2/2)
+<style scoped>p, li, strong { font-size: 22px; line-height: 1.3; } h2 { font-size: 32px; }</style>
 
 **New — Explainable Score Logic:**
 The score now includes a visible explanation line showing exactly why the confidence was reduced:
