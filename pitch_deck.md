@@ -60,8 +60,9 @@ Upon engaging the ROCm translation pass, the core converts the syntax. The resul
 ---
 
 ## Step 3: Architecture Analytics
-![height:200px](./pitchdeck_screenshots/slide8_deterministic.png)
-![height:200px](./pitchdeck_screenshots/slide8_ai.png)
+<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
+![height:150px](./pitchdeck_screenshots/slide8_deterministic.png)
+![height:150px](./pitchdeck_screenshots/slide8_ai.png)
 
 The MoA Audit Scorecard evaluates code through two distinct layers:
 
@@ -82,7 +83,8 @@ Both layers are displayed separately in the report, giving judges and engineers 
 ---
 
 ## Step 3a: Deterministic Redesign Guardrails
-![height:350px](./pitchdeck_screenshots/slide9_score_logic.png)
+<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
+![height:250px](./pitchdeck_screenshots/slide9_score_logic.png)
 
 **Advanced CUDA Kernel Detection**
 RadeonShift's Deterministic Rules Engine catches unsupported architectures before AI translation is trusted. The engine runs independently of the AI pipeline and surfaces findings in a dedicated "Deterministic Portability Findings" section.
@@ -159,6 +161,7 @@ Unlike AI-only translation tools, RadeonShift's deterministic rules engine catch
 ---
 
 ## Engineering Retrospective & Challenges
+<style scoped>p, li, strong { font-size: 22px; line-height: 1.3; } h2 { font-size: 32px; }</style>
 
 **Bridging a Serverless Frontend with Bare-Metal Hardware**
 
