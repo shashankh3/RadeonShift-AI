@@ -60,6 +60,7 @@ Upon engaging the ROCm translation pass, the core converts the syntax. The resul
 ---
 
 ## Step 3: Architecture Analytics (1/2)
+<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
 ![height:150px](./pitchdeck_screenshots/slide8_deterministic.png)
 ![height:150px](./pitchdeck_screenshots/slide8_ai.png)
 
@@ -86,6 +87,7 @@ Both layers are displayed separately in the report, giving judges and engineers 
 ---
 
 ## Step 3a: Deterministic Redesign Guardrails
+<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
 ![height:250px](./pitchdeck_screenshots/slide9_score_logic.png)
 
 **Advanced CUDA Kernel Detection**
@@ -102,6 +104,7 @@ RadeonShift's Deterministic Rules Engine catches unsupported architectures befor
 ---
 
 ## Step 3a: Score Capping & Logic
+<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
 
 **Correctness over Completeness:**
 Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
@@ -176,6 +179,7 @@ Unlike AI-only translation tools, RadeonShift's deterministic rules engine catch
 ---
 
 ## Engineering Retrospective (1/2)
+<style scoped>p, li, strong { font-size: 22px; line-height: 1.3; } h2 { font-size: 32px; }</style>
 
 **Bridging a Serverless Frontend with Bare-Metal Hardware**
 
@@ -187,6 +191,7 @@ Unlike AI-only translation tools, RadeonShift's deterministic rules engine catch
 ---
 
 ## Engineering Retrospective (2/2)
+<style scoped>p, li, strong { font-size: 22px; line-height: 1.3; } h2 { font-size: 32px; }</style>
 
 **Adding Deterministic Safety & Demo Stability**
 
