@@ -143,6 +143,10 @@ Finally, benchmark mode runs trusted HIP benchmark kernels on MI300X when hardwa
 - **RadeonShift Migration:** 244 Kernels × illustrative ~$0.12 AI/compute cost = ~$29 first-pass triage estimate
 - **Time Savings:** Initial audit and translation can shrink from weeks of first-pass review to minutes, with human validation still required for production.
 
+---
+
+## Trust & Market Size
+
 **New — Trust Through Deterministic Guardrails:**
 Unlike AI-only translation tools, RadeonShift's deterministic rules engine catches critical AMD portability risks before AI output is trusted, reducing false-confidence migrations and ensuring engineers know exactly which kernels need manual redesign.
 
