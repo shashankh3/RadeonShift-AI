@@ -104,7 +104,7 @@ RadeonShift's Deterministic Rules Engine catches unsupported architectures befor
 ---
 
 ## Step 3a: Score Capping & Logic
-<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
+<style scoped>p, li, strong { font-size: 18px; line-height: 1.1; margin-bottom: 6px; } h2 { font-size: 32px; }</style>
 
 **Correctness over Completeness:**
 Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
