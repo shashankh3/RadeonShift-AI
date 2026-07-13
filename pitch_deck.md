@@ -60,7 +60,8 @@ Upon engaging the ROCm translation pass, the core converts the syntax. The resul
 ---
 
 ## Step 3: Architecture Analytics
-[PLACEHOLDER SCREENSHOT: Report UI showing both "Deterministic Portability Findings" section AND "AI-Powered Analysis" section visible together. Deterministic findings should show at least 2-3 items with severity labels like CRITICAL, HIGH, MEDIUM.]
+![height:200px](./pitchdeck_screenshots/slide8_deterministic.png)
+![height:200px](./pitchdeck_screenshots/slide8_ai.png)
 
 The MoA Audit Scorecard evaluates code through two distinct layers:
 
@@ -81,7 +82,7 @@ Both layers are displayed separately in the report, giving judges and engineers 
 ---
 
 ## Step 3a: Deterministic Redesign Guardrails
-[PLACEHOLDER SCREENSHOT: Score display showing confidence percentage AND the score explanation text below it. At least one CRITICAL or HIGH finding visible in the deterministic findings section above the score.]
+![height:350px](./pitchdeck_screenshots/slide9_score_logic.png)
 
 **Advanced CUDA Kernel Detection**
 RadeonShift's Deterministic Rules Engine catches unsupported architectures before AI translation is trusted. The engine runs independently of the AI pipeline and surfaces findings in a dedicated "Deterministic Portability Findings" section.
@@ -112,7 +113,6 @@ Judges can trace every score change to a specific deterministic finding or AI fi
 ---
 
 ## Step 4: Live Hardware Telemetry
-[PLACEHOLDER SCREENSHOT: UI in DEMO MODE with the demo label visible. Static wavefront-bug sample loaded with all sections visible: deterministic findings, AI analysis, score with explanation, and provenance labels.]
 
 When the optional backend is online, the platform connects to a remote bare-metal AMD MI300X environment and surfaces live ROCm telemetry plus compile-check evidence.
 
