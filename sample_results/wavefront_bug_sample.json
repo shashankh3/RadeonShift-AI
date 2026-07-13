@@ -1,0 +1,28 @@
+{
+  "input_cuda": "__global__ void reduce_kernel(float* input, float* output, int n) {\n    int tid = threadIdx.x;\n    int lane = tid % 32;  // BUG: hardcoded warp size\n    // ... reduction logic using lane\n    if (lane == 0) {\n        output[blockIdx.x] = partial_sum;\n    }\n}",
+  "deterministic_findings": [
+    {
+      "pattern_name": "% 32",
+      "line_number": 3,
+      "severity": "CRITICAL",
+      "description": "Hardcoded warp-size-32 assumption. AMD GPUs use wavefront-64. This will cause incorrect results."
+    }
+  ],
+  "ai_audit": {
+    "ptx_risks": [
+      {
+        "severity": "CRITICAL",
+        "category": "Wavefront Correctness",
+        "line": 3,
+        "context": "int lane = tid % 32;",
+        "finding": "Hardcoded warpSize=32 assumption. AMD wavefront is 64 on gfx942.",
+        "fix": "Replace literal 32 with warpSize query",
+        "auto_fixable": true,
+        "patch": "int lane = tid % warpSize;"
+      }
+    ],
+    "wavefront_optimizations": []
+  },
+  "corrected_hip": "__hip_global__ void reduce_kernel(float* input, float* output, int n) {\n    int tid = threadIdx.x;\n    int lane = tid % warpSize;  // FIXED\n    // ... reduction logic using lane\n    if (lane == 0) {\n        output[blockIdx.x] = partial_sum;\n    }\n}",
+  "provenance": "deterministic detector + AI analysis"
+}

@@ -60,25 +60,70 @@ Upon engaging the ROCm translation pass, the core converts the syntax. The resul
 ---
 
 ## Step 3: Architecture Analytics
-![height:350px](./docs/step3.png)
+[PLACEHOLDER SCREENSHOT: Report UI showing both "Deterministic Portability Findings" section AND "AI-Powered Analysis" section visible together. Deterministic findings should show at least 2-3 items with severity labels like CRITICAL, HIGH, MEDIUM.]
 
-The MoA Audit Scorecard evaluates the code and computes a readiness score from actual findings. Clean examples can score high, while risky kernels are lowered or capped when PTX, wavefront, WMMA, or async-copy risks appear.
+The MoA Audit Scorecard evaluates code through two distinct layers:
+
+**Layer 1 — Deterministic Risk Detection:**
+Hardcoded rule-based scanners check for known AMD portability risks before any AI analysis runs. Patterns detected:
+- Hardcoded warp-size assumptions (`% 32`, `/ 32`) → **CRITICAL**
+- Warp shuffle operations (`__shfl`) → **HIGH**
+- WMMA / matrix multiply-accumulate (`wmma`, `mma.h`) → **HIGH**
+- Async memory copy (`cuda::memcpy_async`) → **HIGH**
+- Cooperative groups → **MEDIUM**
+- Inline PTX assembly → **MEDIUM**
+
+**Layer 2 — AI-Powered Analysis:**
+The MoA pipeline then runs semantic analysis for deeper architectural risks the deterministic layer cannot catch alone.
+
+Both layers are displayed separately in the report, giving judges and engineers full transparency into what was caught by rules vs. what was caught by AI.
 
 ---
 
 ## Step 3a: Deterministic Redesign Guardrails
-*Advanced CUDA Kernel Detection*
+[PLACEHOLDER SCREENSHOT: Score display showing confidence percentage AND the score explanation text below it. At least one CRITICAL or HIGH finding visible in the deterministic findings section above the score.]
 
-Not all CUDA code maps 1-to-1. RadeonShift's **Deterministic Rules Engine** catches unsupported architectures (e.g., CUDA WMMA, cooperative groups async-copy).
-- **Correctness over completeness:** Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
-- **Score Capping:** Drops readiness score to < 50% automatically, discouraging unsafe architecture conversions from being treated as ready.
+**Advanced CUDA Kernel Detection**
+RadeonShift's Deterministic Rules Engine catches unsupported architectures before AI translation is trusted. The engine runs independently of the AI pipeline and surfaces findings in a dedicated "Deterministic Portability Findings" section.
+
+**Patterns Detected:**
+- Hardcoded warp-32 assumptions (`% 32`, `/ 32`) → **CRITICAL:** breaks on AMD wavefront-64
+- Warp shuffle operations (`_shfl_sync`, `shfl_up`, `shfl_down`, `_shfl_xor`) → **HIGH:** semantics differ across architectures
+- WMMA / `mma.h` → **HIGH:** no direct HIP equivalent, manual redesign required
+- `cuda::memcpy_async` / `__pipeline_memcpy_async` → **HIGH:** async copy API differs on AMD
+- `cooperative_groups` → **MEDIUM:** partial AMD support, requires review
+- Inline PTX (`asm`) → **MEDIUM:** NVIDIA-specific, requires manual rewrite
+
+**Correctness over Completeness:**
+Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
+
+**Score Capping:**
+Drops readiness score to < 50% automatically when CRITICAL or HIGH deterministic findings are present, discouraging unsafe architecture conversions from being treated as ready.
+
+**New — Explainable Score Logic:**
+The score now includes a visible explanation line showing exactly why the confidence was reduced:
+- "Score reduced: critical AMD portability risks detected"
+- "Score capped: unsupported CUDA features require manual redesign"
+- "Flagged for review: NVIDIA-specific constructs detected"
+- "No deterministic portability risks detected" (when clean)
+
+Judges can trace every score change to a specific deterministic finding or AI finding.
 
 ---
 
 ## Step 4: Live Hardware Telemetry
-![height:350px](./docs/step4.png)
+[PLACEHOLDER SCREENSHOT: UI in DEMO MODE with the demo label visible. Static wavefront-bug sample loaded with all sections visible: deterministic findings, AI analysis, score with explanation, and provenance labels.]
 
-When the optional backend is online, the platform connects to a remote bare-metal AMD MI300X environment and surfaces live ROCm telemetry plus compile-check evidence. When offline, hardware fields are explicitly labeled unavailable or cached.
+When the optional backend is online, the platform connects to a remote bare-metal AMD MI300X environment and surfaces live ROCm telemetry plus compile-check evidence.
+
+When offline, the platform now enters Demo Mode — a guaranteed static sample result is loaded containing a complete wavefront-bug detection flow, so the full product can always be demonstrated regardless of backend status.
+
+Three transparency states are clearly labeled in the UI:
+- **LIVE:** Real-time MI300X telemetry active
+- **CACHED:** Previously fetched evidence displayed with timestamp
+- **DEMO MODE:** Static guaranteed sample loaded, clearly labeled as demo data
+
+No state is ever hidden or ambiguous — the provenance of every metric is always visible.
 
 ---
 
@@ -95,7 +140,11 @@ Finally, benchmark mode runs trusted HIP benchmark kernels on MI300X when hardwa
 - **Manual Migration:** 244 Kernels × 4 hrs = 976 Engineer-Hours (~$146,000, based on $150/hr senior GPU engineer rate)
 - **RadeonShift Migration:** 244 Kernels × illustrative ~$0.12 AI/compute cost = ~$29 first-pass triage estimate
 - **Time Savings:** Initial audit and translation can shrink from weeks of first-pass review to minutes, with human validation still required for production.
-- **TAM:** $4.2B illustrative GPU migration and porting services market estimate.
+
+**New — Trust Through Deterministic Guardrails:**
+Unlike AI-only translation tools, RadeonShift's deterministic rules engine catches critical AMD portability risks before AI output is trusted, reducing false-confidence migrations and ensuring engineers know exactly which kernels need manual redesign.
+
+**TAM:** $4.2B illustrative GPU migration and porting services market estimate.
 
 ---
 
@@ -104,7 +153,8 @@ Finally, benchmark mode runs trusted HIP benchmark kernels on MI300X when hardwa
 - **Hardware Target:** Optimized for AMD Instinct MI300X
 - **Software Stack:** Built on ROCm 6.x APIs and `hipcc`
 - **AI Acceleration:** MoA pipeline runs through the Fireworks-hosted inference API
-- **Honest Fallbacks:** If the backend lacks ROCm hardware, the platform gracefully enters AI-Only mode, explicitly labeling any cached evidence without fabricating live metrics
+- **Deterministic Engine:** Standalone rule-based portability scanner runs independently of AI, catching hardcoded warp assumptions, WMMA, async-copy, and PTX risks
+- **Honest Fallbacks:** If the backend lacks ROCm hardware, the platform enters Demo Mode with a guaranteed static sample, explicitly labeling all evidence as demo data without fabricating live metrics
 
 ---
 
@@ -117,12 +167,15 @@ Finally, benchmark mode runs trusted HIP benchmark kernels on MI300X when hardwa
 3. **CORS Routing:** Bypassed strict mixed-content blocks by tunneling through Pinggy and Next.js `rewrites()`.
 4. **Transparent Debugging:** Overhauled error handling to surface remote Python stack traces in the UI.
 5. **Structured AI Prompts:** Constrained LLM outputs to raw HIP code or JSON audit findings, reducing UI parsing failures.
+6. **Deterministic + AI Separation:** Built a standalone rules engine that runs before AI analysis, surfacing findings in a separate UI section so judges and engineers can distinguish rule-based detection from AI inference.
+7. **Explainable Score Logic:** Added visible score explanation lines so every confidence change is traceable to a specific finding, eliminating "black box AI score" concerns.
+8. **Demo-Safe Fallback:** Built a guaranteed static sample mode so the full product flow — deterministic detection, AI audit, score explanation, and provenance — can always be demonstrated even when bare-metal hardware is unavailable.
 
 ---
 
 ## Closing & Team
 
-**RadeonShift AI** is bridging the gap between legacy NVIDIA codebases and the future of AMD compute.
+**RadeonShift AI** is bridging the gap between legacy NVIDIA codebases and the future of AMD compute — with deterministic guardrails that ensure every migration is safe, explainable, and honest.
 
 - **GitHub Repository:** [shashankh3/RadeonShift-AI](https://github.com/shashankh3/RadeonShift-AI)
 - **Live Demo:** [radeon-shift-ai.vercel.app](https://radeon-shift-ai.vercel.app/)

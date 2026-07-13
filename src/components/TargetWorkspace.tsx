@@ -11,6 +11,7 @@ import BenchmarkCard from './BenchmarkCard';
 import CodeDiff from './CodeDiff';
 import ComparisonPanel from './ComparisonPanel';
 import WhyAMDPanel from './WhyAMDPanel';
+import { detect_amd_portability_risks } from '@/lib/deterministic_detectors';
 
 interface TargetWorkspaceProps {
   isTranslating: boolean;
@@ -209,7 +210,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
             )}
             {activeTab === 'analytics' && (
               <>
-                <AnalyticsPanel log={auditLog} />
+                <AnalyticsPanel log={auditLog} cudaSource={cudaSource} />
                 <AuditFindingsSection log={auditLog} />
                 <VerificationGate verification={verification} />
                 <BackendStatusPanel />
@@ -224,7 +225,7 @@ export default function TargetWorkspace({ isTranslating, hasTranslated, rocmCode
               <div className="mt-6 flex justify-end items-center gap-4">
                 {verification?.demo_mode && (
                   <div className="text-xs text-yellow-500 font-medium animate-pulse">
-                    ⚠️ Using offline demo artifacts
+                    ⚠️ Demo Mode (Static Sample)
                   </div>
                 )}
                 <button
@@ -333,7 +334,7 @@ function AuditFindingsSection({ log }: { log: string }) {
   );
 }
 
-function AnalyticsPanel({ log }: { log: string }) {
+function AnalyticsPanel({ log, cudaSource }: { log: string, cudaSource?: string }) {
   let data = null;
   try {
     data = JSON.parse(log);
@@ -364,6 +365,17 @@ function AnalyticsPanel({ log }: { log: string }) {
   const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-yellow-400' : 'text-red-500';
   const scoreBorder = score >= 80 ? 'border-emerald-500/30' : score >= 50 ? 'border-yellow-500/30' : 'border-red-500/30';
 
+  const deterministicFindings = cudaSource ? detect_amd_portability_risks(cudaSource) : [];
+  
+  let explanation = "No deterministic portability risks detected. Score based on AI analysis.";
+  if (deterministicFindings.some(f => f.severity === 'CRITICAL')) {
+    explanation = "Score reduced: critical AMD portability risks detected (hardcoded warp-size assumptions).";
+  } else if (deterministicFindings.some(f => f.severity === 'HIGH')) {
+    explanation = "Score capped: unsupported CUDA features require manual redesign.";
+  } else if (deterministicFindings.some(f => f.severity === 'MEDIUM')) {
+    explanation = "Flagged for review: NVIDIA-specific constructs detected.";
+  }
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
       <SectionTitle kicker="Compiler Intelligence" title="MoA Audit Scorecard" />
@@ -385,9 +397,35 @@ function AnalyticsPanel({ log }: { log: string }) {
                     ? "Manual optimizations or syntax revisions suggested before deployment."
                     : "Manual redesign required. Direct HIP translation is not sufficient."}
               </p>
+              <div className="mt-4 border-l border-white/20 pl-6 text-sm">
+                <div className="font-bold text-white/70 mb-1">Score Logic:</div>
+                <div className="text-white/60">- {explanation}</div>
+              </div>
             </div>
           </div>
 
+          <div className="mb-8">
+            <h3 className="mb-4 text-sm font-black uppercase tracking-[0.28em] text-white">Deterministic Portability Findings</h3>
+            <div className="bg-black/30 border border-white/10 p-5 rounded-sm">
+              {deterministicFindings.length > 0 ? (
+                <ul className="list-none space-y-2 text-sm font-medium">
+                  {deterministicFindings.map((finding, i) => (
+                    <li key={i} className={
+                      finding.severity === 'CRITICAL' ? 'text-red-400' :
+                      finding.severity === 'HIGH' ? 'text-orange-400' :
+                      'text-yellow-400'
+                    }>
+                      [{finding.severity}] Line {finding.line_number}: {finding.description}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-sm text-emerald-400/90 font-medium">No deterministic portability risks detected.</div>
+              )}
+            </div>
+          </div>
+          
+          <h3 className="mb-4 text-sm font-black uppercase tracking-[0.28em] text-white">AI-Powered Analysis</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-black/30 border border-amd-red/30 hover:border-amd-red/50 transition-colors p-5 rounded-sm min-h-[200px]">
               <div className="border-b border-amd-red/20 pb-3 mb-4">

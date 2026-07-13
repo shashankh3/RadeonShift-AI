@@ -1,4 +1,5 @@
 import { DEMO_HIP_OUTPUT, DEMO_AUDIT_FINDINGS, DEMO_BENCHMARK, DEMO_WAVEFRONT_BUG_CUDA, DEMO_WAVEFRONT_BUG_FINDINGS, DEMO_RADEONSHIFT_FIXED_HIP, DEMO_ADVANCED_KERNEL_FINDINGS, DEMO_ADVANCED_KERNEL_HIP } from './demoData';
+import demoBugSample from '../../sample_results/wavefront_bug_sample.json';
 
 export interface ScorecardData {
   execution_mode: "ai_only" | "full_stack" | "demo_only";
@@ -42,6 +43,24 @@ export interface TranslationResponse {
 const API_BASE_URL = '/pinggy';
 
 export async function translateCode(code: string): Promise<TranslationResponse> {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    return {
+      rocm_code: demoBugSample.corrected_hip,
+      audit_log: JSON.stringify(demoBugSample.ai_audit),
+      verification: {
+        demo_mode: true,
+        static_analysis: { findings: demoBugSample.deterministic_findings }
+      },
+      scorecard: {
+        execution_mode: "demo_only",
+        translation: { source: "demo_artifact", provider: "Demo Mode (Static Sample)", model: "N/A", latency_ms: 0 },
+        audit: { source: "demo_artifact", findings_total: 1, critical: 1, high: 0, medium: 0, low: 0, auto_fixable: 1, confidence_score: 80 },
+        hardware: { status: "offline", gpu: null, rocm_version: null, telemetry_available: false },
+        benchmark: { status: "cached", elapsed_ms: 0, throughput_gbps: 0, peak_pct: 0 }
+      }
+    };
+  }
+
   const tStart = performance.now();
   let hwData: any = null;
 
