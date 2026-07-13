@@ -59,8 +59,7 @@ Upon engaging the ROCm translation pass, the core converts the syntax. The resul
 
 ---
 
-## Step 3: Architecture Analytics
-<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
+## Step 3: Architecture Analytics (1/2)
 ![height:150px](./pitchdeck_screenshots/slide8_deterministic.png)
 ![height:150px](./pitchdeck_screenshots/slide8_ai.png)
 
@@ -75,6 +74,10 @@ Hardcoded rule-based scanners check for known AMD portability risks before any A
 - Cooperative groups → **MEDIUM**
 - Inline PTX assembly → **MEDIUM**
 
+---
+
+## Step 3: Architecture Analytics (2/2)
+
 **Layer 2 — AI-Powered Analysis:**
 The MoA pipeline then runs semantic analysis for deeper architectural risks the deterministic layer cannot catch alone.
 
@@ -83,7 +86,6 @@ Both layers are displayed separately in the report, giving judges and engineers 
 ---
 
 ## Step 3a: Deterministic Redesign Guardrails
-<style scoped>p, li, strong { font-size: 20px; line-height: 1.2; } h2 { font-size: 32px; }</style>
 ![height:250px](./pitchdeck_screenshots/slide9_score_logic.png)
 
 **Advanced CUDA Kernel Detection**
@@ -91,11 +93,15 @@ RadeonShift's Deterministic Rules Engine catches unsupported architectures befor
 
 **Patterns Detected:**
 - Hardcoded warp-32 assumptions (`% 32`, `/ 32`) → **CRITICAL:** breaks on AMD wavefront-64
-- Warp shuffle operations (`_shfl_sync`, `shfl_up`, `shfl_down`, `_shfl_xor`) → **HIGH:** semantics differ across architectures
+- Warp shuffle operations (`__shfl_sync`, `__shfl_up`, `__shfl_down`, `__shfl_xor`) → **HIGH:** semantics differ across architectures
 - WMMA / `mma.h` → **HIGH:** no direct HIP equivalent, manual redesign required
 - `cuda::memcpy_async` / `__pipeline_memcpy_async` → **HIGH:** async copy API differs on AMD
 - `cooperative_groups` → **MEDIUM:** partial AMD support, requires review
 - Inline PTX (`asm`) → **MEDIUM:** NVIDIA-specific, requires manual rewrite
+
+---
+
+## Step 3a: Score Capping & Logic
 
 **Correctness over Completeness:**
 Safely enforces `MANUAL REDESIGN REQUIRED` if code relies on hardware-specific features.
@@ -119,6 +125,10 @@ Judges can trace every score change to a specific deterministic finding or AI fi
 When the optional backend is online, the platform connects to a remote bare-metal AMD MI300X environment and surfaces live ROCm telemetry plus compile-check evidence.
 
 When offline, the platform now enters Demo Mode — a guaranteed static sample result is loaded containing a complete wavefront-bug detection flow, so the full product can always be demonstrated regardless of backend status.
+
+---
+
+## Step 4: Transparency & Provenance
 
 Three transparency states are clearly labeled in the UI:
 - **LIVE:** Real-time MI300X telemetry active
