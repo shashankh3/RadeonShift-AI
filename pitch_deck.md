@@ -155,6 +155,7 @@ Unlike AI-only translation tools, RadeonShift's deterministic rules engine catch
 ---
 
 ## The AMD Infrastructure Story
+<style scoped>p, li, strong { font-size: 22px; line-height: 1.3; } h2 { font-size: 32px; }</style>
 
 - **Hardware Target:** Optimized for AMD Instinct MI300X
 - **Software Stack:** Built on ROCm 6.x APIs and `hipcc`
@@ -164,8 +165,7 @@ Unlike AI-only translation tools, RadeonShift's deterministic rules engine catch
 
 ---
 
-## Engineering Retrospective & Challenges
-<style scoped>p, li, strong { font-size: 22px; line-height: 1.3; } h2 { font-size: 32px; }</style>
+## Engineering Retrospective (1/2)
 
 **Bridging a Serverless Frontend with Bare-Metal Hardware**
 
@@ -173,6 +173,13 @@ Unlike AI-only translation tools, RadeonShift's deterministic rules engine catch
 2. **Defensive APIs:** Built robust frontend parsing to gracefully handle sudden JSON schema changes.
 3. **CORS Routing:** Bypassed strict mixed-content blocks by tunneling through Pinggy and Next.js `rewrites()`.
 4. **Transparent Debugging:** Overhauled error handling to surface remote Python stack traces in the UI.
+
+---
+
+## Engineering Retrospective (2/2)
+
+**Adding Deterministic Safety & Demo Stability**
+
 5. **Structured AI Prompts:** Constrained LLM outputs to raw HIP code or JSON audit findings, reducing UI parsing failures.
 6. **Deterministic + AI Separation:** Built a standalone rules engine that runs before AI analysis, surfacing findings in a separate UI section so judges and engineers can distinguish rule-based detection from AI inference.
 7. **Explainable Score Logic:** Added visible score explanation lines so every confidence change is traceable to a specific finding, eliminating "black box AI score" concerns.
