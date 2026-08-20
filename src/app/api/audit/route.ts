@@ -25,7 +25,7 @@ Specifically look for:
 
 You must output ONLY a valid JSON object matching this exact schema:
 {
-  "readiness_score": <integer 0-100>,
+  "readiness_score": 85,
   "ptx_risks": [
     {
       "severity": "HIGH",
@@ -63,8 +63,7 @@ Absolutely NO conversational preamble and NO markdown formatting. Return only th
         { role: 'user', content: userMessage }
       ],
       temperature: 0.1,
-      max_tokens: 4096,
-      response_format: { type: "json_object" }
+      max_tokens: 4096
     };
 
     const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
@@ -88,6 +87,11 @@ Absolutely NO conversational preamble and NO markdown formatting. Return only th
     content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     
     // Clean up potential markdown formatting that the LLM might have leaked
+    const codeBlockMatch = content.match(/```(?:json)?\n([\s\S]*?)```/i);
+    if (codeBlockMatch) {
+      content = codeBlockMatch[1].trim();
+    }
+    
     // Extract everything between the first { and last }
     const startIndex = content.indexOf('{');
     const endIndex = content.lastIndexOf('}');

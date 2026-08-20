@@ -123,8 +123,7 @@ Scan the CUDA source above for NVIDIA-specific lock-in. Return a JSON array of f
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.1,
-        "max_tokens": 2048,
-        "response_format": {"type": "json_object"}
+        "max_tokens": 2048
     }
     headers = {
         "Authorization": f"Bearer {provider['api_key']}",
@@ -137,6 +136,25 @@ Scan the CUDA source above for NVIDIA-specific lock-in. Return a JSON array of f
                 raw_content = res.json()["choices"][0]["message"]["content"]
                 # Strip <think> tags for DeepSeek R1 models
                 raw_content = re.sub(r'<think>.*?</think>', '', raw_content, flags=re.DOTALL).strip()
+                
+                # Extract markdown JSON block if present
+                if "```json" in raw_content:
+                    raw_content = raw_content.split("```json")[1].split("```")[0].strip()
+                elif "```" in raw_content:
+                    raw_content = raw_content.split("```")[1].split("```")[0].strip()
+                    
+                # Find array brackets
+                start = raw_content.find('[')
+                end = raw_content.rfind(']')
+                if start != -1 and end != -1 and end >= start:
+                    raw_content = raw_content[start:end+1]
+                else:
+                    # Fallback to object
+                    start = raw_content.find('{')
+                    end = raw_content.rfind('}')
+                    if start != -1 and end != -1 and end >= start:
+                        raw_content = raw_content[start:end+1]
+                        
                 raw = json.loads(raw_content)
                 # The model may return {"findings": [...]} or a bare array
                 if isinstance(raw, list):
@@ -211,8 +229,7 @@ Suggest MI300X-specific optimizations. Return a JSON array of findings per the s
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.1,
-        "max_tokens": 2048,
-        "response_format": {"type": "json_object"}
+        "max_tokens": 2048
     }
     headers = {
         "Authorization": f"Bearer {provider['api_key']}",
@@ -225,6 +242,25 @@ Suggest MI300X-specific optimizations. Return a JSON array of findings per the s
                 raw_content = res.json()["choices"][0]["message"]["content"]
                 # Strip <think> tags for DeepSeek R1 models
                 raw_content = re.sub(r'<think>.*?</think>', '', raw_content, flags=re.DOTALL).strip()
+                
+                # Extract markdown JSON block if present
+                if "```json" in raw_content:
+                    raw_content = raw_content.split("```json")[1].split("```")[0].strip()
+                elif "```" in raw_content:
+                    raw_content = raw_content.split("```")[1].split("```")[0].strip()
+                    
+                # Find array brackets
+                start = raw_content.find('[')
+                end = raw_content.rfind(']')
+                if start != -1 and end != -1 and end >= start:
+                    raw_content = raw_content[start:end+1]
+                else:
+                    # Fallback to object
+                    start = raw_content.find('{')
+                    end = raw_content.rfind('}')
+                    if start != -1 and end != -1 and end >= start:
+                        raw_content = raw_content[start:end+1]
+                        
                 raw = json.loads(raw_content)
                 if isinstance(raw, list):
                     findings = raw
