@@ -142,9 +142,8 @@ If the source code itself is incomplete, inconsistent, or references undefined s
 OUTPUT RULES
 
 1. Output ONLY RAW HIP/C++ code.
-- ABSOLUTELY NO PROSE before or after the code.
-- ABSOLUTELY NO MARKDOWN CODE FENCES (do not use \`\`\`cpp or \`\`\`).
-- The very first character of your response MUST be valid C++ code or a // C++ comment.
+- You may use markdown code fences (e.g. \`\`\`cpp) to format your code.
+- ABSOLUTELY NO PROSE before or after the code block.
 - Do not add bullet lists or explanations outside of standard code comments.
 
 2. The code should be:
@@ -200,11 +199,15 @@ It is better to return a partially translated, honestly annotated HIP kernel tha
     // Strip <think> tags for DeepSeek R1 models
     rawContent = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     
-    // Clean up potential markdown formatting that the LLM might have leaked
-    const cleanCode = rawContent
-      .replace(/^```(cpp|c\+\+|c)?\n/i, '') // Removes starting fence
-      .replace(/```$/g, '')                 // Removes ending fence
-      .trim();                              // Removes extra newlines
+    // Clean up potential markdown formatting
+    let cleanCode = rawContent;
+    const codeBlockMatch = cleanCode.match(/```(?:cpp|c\+\+|c)?\n([\s\S]*?)```/i);
+    if (codeBlockMatch) {
+      cleanCode = codeBlockMatch[1];
+    } else {
+      cleanCode = cleanCode.replace(/^```(?:cpp|c\+\+|c)?\n/i, '').replace(/```$/g, '');
+    }
+    cleanCode = cleanCode.trim();
 
     return NextResponse.json({
       translation: cleanCode,
