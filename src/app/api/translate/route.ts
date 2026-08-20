@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration error: missing API key' }, { status: 500 });
     }
 
-    const model = process.env.FIREWORKS_MODEL_TRANSLATE || 'accounts/fireworks/models/deepseek-v4-flash';
+    const model = process.env.FIREWORKS_MODEL_TRANSLATE || 'accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b';
 
     const systemPrompt = `You are RadeonShift, an expert CUDA-to-HIP migration engineer focused on AMD correctness, portability, and truthful translation quality.
 
@@ -195,7 +195,10 @@ It is better to return a partially translated, honestly annotated HIP kernel tha
     }
 
     const data = await response.json();
-    const rawContent = data.choices[0]?.message?.content || '';
+    let rawContent = data.choices[0]?.message?.content || '';
+    
+    // Strip <think> tags for DeepSeek R1 models
+    rawContent = rawContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     
     // Clean up potential markdown formatting that the LLM might have leaked
     const cleanCode = rawContent

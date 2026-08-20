@@ -7,9 +7,13 @@ fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
     'Authorization': `Bearer ${apiKey}`
   },
   body: JSON.stringify({
-    model: 'accounts/fireworks/models/deepseek-v4-flash',
+    model: 'accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b',
     max_tokens: 350,
     messages: [{role: 'user', content: 'test'}],
     response_format: { type: 'json_object' }
   })
-}).then(r => r.text()).then(console.log).catch(console.error);
+}).then(r => r.json()).then(data => {
+  let content = data.choices[0]?.message?.content || '';
+  content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+  console.log(content);
+}).catch(console.error);

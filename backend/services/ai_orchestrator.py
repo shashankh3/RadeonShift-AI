@@ -2,6 +2,7 @@ import httpx
 import json
 import os
 import subprocess
+import re
 from core.config import FIREWORKS_API_KEY
 
 USE_MOCK_AI = os.environ.get("USE_MOCK_AI", "false").lower() == "true"
@@ -12,7 +13,7 @@ def get_primary_llm_provider():
         "provider_display": "Fireworks AI (Cloud)",
         "base_url": "https://api.fireworks.ai/inference/v1",
         "api_key": os.environ.get("FIREWORKS_API_KEY", ""),
-        "model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/deepseek-v4-flash"),
+        "model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b"),
         "status": "online" if os.environ.get("FIREWORKS_API_KEY") else "offline"
     }
 
@@ -133,7 +134,10 @@ Scan the CUDA source above for NVIDIA-specific lock-in. Return a JSON array of f
         try:
             res = await client.post(f"{provider['base_url']}/chat/completions", headers=headers, json=payload, timeout=30.0)
             if res.status_code == 200:
-                raw = json.loads(res.json()["choices"][0]["message"]["content"])
+                raw_content = res.json()["choices"][0]["message"]["content"]
+                # Strip <think> tags for DeepSeek R1 models
+                raw_content = re.sub(r'<think>.*?</think>', '', raw_content, flags=re.DOTALL).strip()
+                raw = json.loads(raw_content)
                 # The model may return {"findings": [...]} or a bare array
                 if isinstance(raw, list):
                     findings = raw
@@ -218,7 +222,10 @@ Suggest MI300X-specific optimizations. Return a JSON array of findings per the s
         try:
             res = await client.post(f"{provider['base_url']}/chat/completions", headers=headers, json=payload, timeout=30.0)
             if res.status_code == 200:
-                raw = json.loads(res.json()["choices"][0]["message"]["content"])
+                raw_content = res.json()["choices"][0]["message"]["content"]
+                # Strip <think> tags for DeepSeek R1 models
+                raw_content = re.sub(r'<think>.*?</think>', '', raw_content, flags=re.DOTALL).strip()
+                raw = json.loads(raw_content)
                 if isinstance(raw, list):
                     findings = raw
                 elif isinstance(raw, dict):

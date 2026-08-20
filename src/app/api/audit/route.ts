@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration error: missing API key' }, { status: 500 });
     }
 
-    const model = process.env.FIREWORKS_MODEL_AUDIT || 'accounts/fireworks/models/deepseek-v4-flash';
+    const model = process.env.FIREWORKS_MODEL_AUDIT || 'accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b';
 
     const systemPrompt = `You are a dual-expert CUDA/HIP AI auditor. Your job is to analyze the provided CUDA source code and the translated HIP code, and return JSON containing audit findings.
 
@@ -83,6 +83,9 @@ Absolutely NO conversational preamble and NO markdown formatting. Return only th
 
     const data = await response.json();
     let content = data.choices[0]?.message?.content || '{}';
+    
+    // Strip <think> tags for DeepSeek R1 models
+    content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     
     // Clean up potential markdown formatting that the LLM might have leaked
     // Extract everything between the first { and last }
