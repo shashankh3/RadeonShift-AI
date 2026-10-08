@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration error: missing API key' }, { status: 500 });
     }
 
-    const model = process.env.FIREWORKS_MODEL_AUDIT || 'accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b';
+    const model = process.env.FIREWORKS_MODEL_AUDIT || 'accounts/fireworks/models/glm-5p3-flash';
 
     const systemPrompt = `You are a dual-expert CUDA/HIP AI auditor. Your job is to analyze the provided CUDA source code and the translated HIP code, and return JSON containing audit findings.
 

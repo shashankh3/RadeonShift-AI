@@ -13,7 +13,7 @@ def get_primary_llm_provider():
         "provider_display": "Fireworks AI (Cloud)",
         "base_url": "https://api.fireworks.ai/inference/v1",
         "api_key": os.environ.get("FIREWORKS_API_KEY", ""),
-        "model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b"),
+        "model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/glm-5p3-flash"),
         "status": "online" if os.environ.get("FIREWORKS_API_KEY") else "offline"
     }
 

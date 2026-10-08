@@ -7,7 +7,7 @@ fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
     'Authorization': `Bearer ${apiKey}`
   },
   body: JSON.stringify({
-    model: 'accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b',
+    model: 'accounts/fireworks/models/glm-5p3-flash',
     max_tokens: 350,
     messages: [{role: 'user', content: 'test'}],
     response_format: { type: 'json_object' }

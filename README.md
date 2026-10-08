@@ -212,8 +212,8 @@ Activated automatically when Fireworks AI is unreachable, or forced locally by s
 ### Vercel (server-side — never client-side)
 ```
 FIREWORKS_API_KEY=<secret stored in Vercel project settings>
-FIREWORKS_MODEL_TRANSLATE=accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b
-FIREWORKS_MODEL_AUDIT=accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b
+FIREWORKS_MODEL_TRANSLATE=accounts/fireworks/models/glm-5p3-flash
+FIREWORKS_MODEL_AUDIT=accounts/fireworks/models/glm-5p3-flash
 ```
 
 ### AMD Notebook / Backend (FastAPI)

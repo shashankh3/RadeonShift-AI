@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration error: missing API key' }, { status: 500 });
     }
 
-    const model = process.env.FIREWORKS_MODEL_TRANSLATE || 'accounts/fireworks/models/nemotron-lightning-3p5-30b-a3b';
+    const model = process.env.FIREWORKS_MODEL_TRANSLATE || 'accounts/fireworks/models/glm-5p3-flash';
 
     const systemPrompt = `You are RadeonShift, an expert CUDA-to-HIP migration engineer focused on AMD correctness, portability, and truthful translation quality.
 
